@@ -97,17 +97,20 @@ export function ProfileCard({
   const livePosts = (live?.posts ?? []).filter(
     (p) => !platform || p.platform === platform.toLowerCase()
   );
-  const hasLive = matchedAccounts.length > 0 && !live?.loading;
+  const hasLive = matchedAccounts.length > 0;
   // Mode "Semua Sosmed": gabungkan stat semua akun
   const totalFollowers = matchedAccounts.reduce((s, a) => s + (a.followersCount ?? 0), 0);
   const totalVideos = livePosts.length;
   const totalEngagement = livePosts.reduce((s, p) => s + (p.likeCount ?? 0), 0);
 
+  const firstAcct = matchedAccounts[0];
   const handle = hasLive && liveAcct
     ? `@${liveAcct.username}`
     : platform
       ? (PROFILE_META[platform]?.handle ?? "@username")
-      : "@bangbay_audio";
+      : firstAcct
+        ? `@${firstAcct.username}`
+        : "@bangbay_audio";
   const bio = hasLive && liveAcct
     ? liveAcct.bio || liveAcct.displayName || "Content Creator"
     : platform

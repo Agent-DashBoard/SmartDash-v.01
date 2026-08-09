@@ -91,7 +91,7 @@ export function MetricCard({
   const livePosts = (live?.posts ?? []).filter(
     (p) => !platform || p.platform === platform.toLowerCase()
   );
-  const hasLive = matchedAccounts.length > 0 && !live?.loading;
+  const hasLive = matchedAccounts.length > 0;
 
   let liveValue: number | null = null;
   let liveDelta: string | null = null;
