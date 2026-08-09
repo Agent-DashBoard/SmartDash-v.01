@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# engine — install Hermes lokal (Abbu) — JANGAN di-push (bisa bocor secret)
+/engine/

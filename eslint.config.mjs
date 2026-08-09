@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Engine Hermes Agent (install Abbu) — bukan bagian dari lint project Next.
+    // Konsisten dengan tsconfig.json (exclude: ["engine"]).
+    "engine/**",
   ]),
 ]);
 
