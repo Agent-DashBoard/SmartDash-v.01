@@ -19,6 +19,8 @@ import {
 } from "../ui/chart";
 import { PlatformIcon } from "./platform-icon";
 import { PROFILE_META } from "./profile-card";
+import { engagementSeries } from "./chart-data";
+import { LiveData } from "./live-data";
 import { DayRange, RANGE_LABEL, CONTENT_PLATFORM_COLORS } from "./dashboard-data";
 
 type EngPoint = { likes: number; comments: number };
@@ -48,7 +50,6 @@ const AMP_SCALE: Record<DayRange, number> = {
 
 // Timeline — mengikuti gambar referensi BangBay
 const TIMELINE_DATES = ["22/07", "23/07", "24/07", "25/07", "26/07", "27/07", "28/07", "29/07", "30/07"];
-const ACTIVE_DATE = "24/07";
 
 // Seri default (mode semua sosmed): Likes (biru) & Comments (teal)
 const SERIES = [
@@ -69,16 +70,16 @@ const ENGAGEMENT_ROUTE = "/platform/engagement";
 // ---------------------------------------------------------------------------
 // Keyframes animasi dot berjalan — dot berdenyut (scale 1.8) TEPAT saat
 // melewati tiap node pin, bergerak mulus di antaranya (kiri → kanan).
-// ---------------------------------------------------------------------------
-const TRAVEL_KEYFRAMES = (() => {
+// Panjang keyframes mengikuti JUMLAH node (dinamis: mock 9 node, data asli = jumlah post).
+function buildTravelKeyframes(count: number): string {
   const frames: string[] = [
     "0% { left: 0%; transform: translate(-50%, -50%) scale(0.6); opacity: 0; }",
     "1% { transform: translate(-50%, -50%) scale(1); opacity: 1; }",
     "2% { transform: translate(-50%, -50%) scale(1.8); }",
     "4% { transform: translate(-50%, -50%) scale(1); }",
   ];
-  for (let i = 1; i < TIMELINE_DATES.length - 1; i++) {
-    const p = (i * 100) / (TIMELINE_DATES.length - 1);
+  for (let i = 1; i < count - 1; i++) {
+    const p = (i * 100) / (count - 1);
     frames.push(`${p}% { left: ${p}%; transform: translate(-50%, -50%) scale(1); }`);
     frames.push(`${p + 2}% { transform: translate(-50%, -50%) scale(1.8); }`);
     frames.push(`${p + 4}% { transform: translate(-50%, -50%) scale(1); }`);
@@ -87,24 +88,40 @@ const TRAVEL_KEYFRAMES = (() => {
   frames.push("99% { transform: translate(-50%, -50%) scale(1.8); }");
   frames.push("100% { left: 100%; transform: translate(-50%, -50%) scale(0.6); opacity: 0; }");
   return frames.join("\n    ");
-})();
+}
 
 // ---------------------------------------------------------------------------
 // Komponen
 // ---------------------------------------------------------------------------
-export function EngagementMetricsChart({ platform, days }: { platform: string; days: DayRange }) {
+export function EngagementMetricsChart({
+  platform,
+  days,
+  live,
+}: {
+  platform: string;
+  days: DayRange;
+  // Data live Zernio — kalau ada posts, chart pakai data ASLI per post
+  live?: LiveData;
+}) {
   const router = useRouter();
   const hex = platform ? CONTENT_PLATFORM_COLORS[platform] ?? "#F97316" : "#F97316";
   const iconKey = platform ? PROFILE_META[platform]?.iconKey ?? "tiktok" : "total";
 
-  // Data gelombang (selalu 9 titik ↔ 9 node timeline), amplitudo per Days.
-  // Saat platform dipilih, data likes diskala sesuai PLATFORM_SCALE (mock, konsisten dgn versi lama).
-  const scale = PLATFORM_SCALE[platform] ?? 1;
-  const data = buildWave(AMP_SCALE[days]).map((d, i) => ({
-    ...d,
-    likes: platform ? Math.round(d.likes * scale) : d.likes,
-    label: TIMELINE_DATES[i],
-  }));
+  // Data ASLI dari posts Zernio (per post, kronologis) kalau ada; fallback ke gelombang mock.
+  // realData?.length ? ... : null — array kosong (belum load) tetap jadi null agar pakai mock.
+  const realData = live ? engagementSeries(live.posts ?? [], platform || undefined) : null;
+  const realList = realData?.length ? realData : null;
+  const data = realList
+    ? realList
+    : buildWave(AMP_SCALE[days]).map((d, i) => ({
+        ...d,
+        likes: platform ? Math.round(d.likes * (PLATFORM_SCALE[platform] ?? 1)) : d.likes,
+        label: TIMELINE_DATES[i],
+      }));
+
+  // Label timeline: data asli pakai tanggal post; mock pakai TIMELINE_DATES
+  const timelineLabels = realList ? data.map((d) => d.label) : TIMELINE_DATES;
+  const activeDate = timelineLabels[timelineLabels.length - 1];
 
   // Seri aktif: platform dipilih → 1 seri (likes di-scale) warna platform; selain itu 2 seri.
   // URUTAN RENDER PENTING (stacking recharts): Comments = base layer (bawah), Likes = atas.
@@ -115,10 +132,9 @@ export function EngagementMetricsChart({ platform, days }: { platform: string; d
         likes: { label: "Likes", color: "#60A5FA" },
       };
 
-  // Badge diklik → halaman detail engagement (belum ada → notif)
+  // Badge diklik → halaman detail engagement
   const handleEngClick = () => {
     router.push(ENGAGEMENT_ROUTE);
-    alert("Menu Engagement belum tersedia — lagi dikerjakan 💪");
   };
 
   return (
@@ -130,7 +146,7 @@ export function EngagementMetricsChart({ platform, days }: { platform: string; d
           <button
             type="button"
             onClick={handleEngClick}
-            title="Buka halaman Engagement — belum tersedia"
+            title="Buka halaman Engagement — data asli dari Zernio"
             className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:opacity-80"
             style={{ backgroundColor: `${hex}25` }}
           >
@@ -188,7 +204,14 @@ export function EngagementMetricsChart({ platform, days }: { platform: string; d
             {/* XAxis hidden — label tanggal pakai timeline manual di bawah */}
             <XAxis dataKey="label" hide />
             <YAxis hide domain={[0, "auto"]} />
-            <ChartTooltip content={<ChartTooltipContent hideLabel valueFormatter={(v) => `${v}K`} />} />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  hideLabel
+                  valueFormatter={(v) => (realList ? `${v}` : `${v}K`)}
+                />
+              }
+            />
             {platform ? (
               // Mode single platform: cuma 1 seri (likes di-scale) warna platform
               <Area
@@ -231,18 +254,18 @@ export function EngagementMetricsChart({ platform, days }: { platform: string; d
         </ChartContainer>
       </div>
 
-      {/* Timeline tanggal (referensi: 22/07–30/07, aktif 24/07, marker hijau di node terakhir) */}
+      {/* Timeline tanggal (mock: 22/07–30/07; data asli: tanggal tiap post) */}
       <div className="relative mt-auto h-[44px] pt-4">
         {/* garis dasar */}
         <div className="absolute left-0 right-0 top-[5.5px] h-px bg-white/25" />
-        {TIMELINE_DATES.map((d, i) => {
-          const active = d === ACTIVE_DATE;
-          const isLast = i === TIMELINE_DATES.length - 1;
+        {timelineLabels.map((d, i) => {
+          const active = d === activeDate;
+          const isLast = i === timelineLabels.length - 1;
           return (
             <div
               key={d}
               className="absolute top-0 flex flex-col items-center"
-              style={{ left: `${(i / (TIMELINE_DATES.length - 1)) * 100}%`, transform: "translateX(-50%)" }}
+              style={{ left: `${(i / (timelineLabels.length - 1)) * 100}%`, transform: "translateX(-50%)" }}
             >
               {isLast && (
                 <svg className="absolute -top-[14px] h-3 w-3" viewBox="0 0 12 12" fill="none" aria-hidden>
@@ -273,7 +296,7 @@ export function EngagementMetricsChart({ platform, days }: { platform: string; d
       {/* Animasi: dot perjalanan (denyut di tiap pin) + denyut node aktif */}
       <style>{`
         @keyframes moka-travel-kf {
-          ${TRAVEL_KEYFRAMES}
+          ${buildTravelKeyframes(timelineLabels.length)}
         }
         @keyframes moka-node-pulse-kf {
           0%, 100% { box-shadow: 0 0 4px rgba(255,255,255,0.45); }

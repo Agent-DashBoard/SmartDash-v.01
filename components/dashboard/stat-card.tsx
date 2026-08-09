@@ -125,12 +125,10 @@ export function MetricCard({
       ? `${type} ${liveAcct.platform === "youtube" ? "YouTube" : "TikTok"} · ${RANGE_LABEL[days]}`
       : `${TOTAL_METRICS[type].label} · ${RANGE_LABEL[days]}`;
 
-  // Badge diklik → ke halaman tujuan (belum ada → kembali ke halaman utama + notif)
+  // Badge diklik → ke halaman tujuan (detail metric sudah ada)
   const handleBadgeClick = () => {
     const target = METRIC_ROUTE[type];
     router.push(target);
-    // Sementara: halaman belum ada → tampilkan notif
-    alert(`Menu ${type} belum tersedia — lagi dikerjakan 💪`);
   };
 
   return (

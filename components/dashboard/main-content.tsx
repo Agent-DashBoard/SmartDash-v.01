@@ -220,8 +220,8 @@ export default function MainContent() {
             </div>
             {/* Baris chart utama: Target (kiri, sidebar sempit) | Engagement metrics (kanan, lebar) — sesuai referensi */}
             <div className="grid flex-1 grid-cols-1 gap-2 min-[1440px]:grid-cols-[minmax(0,170px)_minmax(0,1fr)] min-[1440px]:grid-rows-[minmax(400px,1fr)]">
-              <TargetCard platform={platform} days={days} />
-              <EngagementMetricsChart platform={platform} days={days} />
+              <TargetCard platform={platform} days={days} live={live} />
+              <EngagementMetricsChart platform={platform} days={days} live={live} />
             </div>
           </div>
 
@@ -232,6 +232,7 @@ export default function MainContent() {
               platform={platform}
               days={days}
               connectedPlatforms={connectedPlatforms}
+              live={live}
             />
           </div>
         </div>

@@ -15,6 +15,8 @@ import {
 } from "../ui/chart";
 import { PlatformIcon } from "./platform-icon";
 import { PROFILE_META } from "./profile-card";
+import { weeklyPerformance } from "./chart-data";
+import { LiveData } from "./live-data";
 import {
   DayRange,
   RANGE_WINDOW,
@@ -40,23 +42,36 @@ export function ContentPerformanceChart({
   platform,
   days,
   connectedPlatforms,
+  live,
 }: {
   platform: string;
   days: DayRange;
   // Label platform yang terintegrasi (dari live data) — chart cuma render ini
   connectedPlatforms: string[];
+  // Data live Zernio — kalau ada posts, chart pakai data ASLI (weeklyPerformance)
+  live?: LiveData;
 }) {
   const router = useRouter();
   const hex = platform ? CONTENT_PLATFORM_COLORS[platform] ?? "#F97316" : "#F97316";
   const iconKey = platform ? PROFILE_META[platform]?.iconKey ?? "tiktok" : "total";
 
-  // Baris data difilter: kolom cuma platform terintegrasi + label minggu
-  const active = connectedPlatforms.filter((p) => CONTENT_PERF_DATA[0][p as keyof typeof CONTENT_PERF_DATA[0]] !== undefined);
-  const data = CONTENT_PERF_DATA.slice(-RANGE_WINDOW[days]).map((row) => {
-    const out: Record<string, string | number> = { label: row.label };
-    for (const p of active) out[p] = row[p as keyof typeof row];
-    return out;
-  });
+  // Data ASLI dari posts Zernio (8 bucket waktu antara post pertama & terakhir);
+  // fallback ke mock kalau belum ada posts.
+  const realData = live ? weeklyPerformance(live.posts ?? []) : null;
+  const data =
+    realData ?? CONTENT_PERF_DATA.slice(-RANGE_WINDOW[days]);
+
+  // Platform yang aktif di chart: untuk data asli = kolom yang ada di data;
+  // untuk mock = platform terintegrasi yang punya kolom di data contoh.
+  const presentColumns =
+    data.length > 0
+      ? Object.keys(data[0]).filter((k) => k !== "label")
+      : [];
+  const active = realData
+    ? presentColumns
+    : connectedPlatforms.filter((p) =>
+        (CONTENT_PERF_DATA[0] as unknown as Record<string, number>)[p] !== undefined
+      );
 
   // Config chart — dipakai tooltip (dot + label + nilai) & label series
   const chartConfig: ChartConfig = {};
@@ -67,10 +82,9 @@ export function ContentPerformanceChart({
     chartConfig[platform] = { label: platform, color: hex };
   }
 
-  // Badge diklik → halaman detail content performance (belum ada → notif)
+  // Badge diklik → halaman detail content performance
   const handleChartClick = () => {
     router.push(CONTENT_ROUTE);
-    alert("Menu Content Performance belum tersedia — lagi dikerjakan 💪");
   };
 
   return (
@@ -114,7 +128,9 @@ export function ContentPerformanceChart({
                 tickMargin={10}
                 axisLine={false}
                 tick={{ fill: "#94A3B8", fontSize: 10 }}
-                tickFormatter={(value) => value.slice(0, 3)}
+                tickFormatter={(value) =>
+                  typeof value === "string" && value.includes("/") ? value : String(value).slice(0, 3)
+                }
               />
               <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
               <Bar dataKey={platform} fill={hex} radius={8}>
@@ -149,7 +165,9 @@ export function ContentPerformanceChart({
                 tickMargin={10}
                 axisLine={false}
                 tick={{ fill: "#94A3B8", fontSize: 10 }}
-                tickFormatter={(value) => value.slice(0, 3)}
+                tickFormatter={(value) =>
+                  typeof value === "string" && value.includes("/") ? value : String(value).slice(0, 3)
+                }
               />
               <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
               {active.map((name) => (
