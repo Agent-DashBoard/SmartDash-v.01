@@ -1783,3 +1783,25 @@ Request BangBay: *"moka tolong cek semua kerjaan hari ini dan tolong di save/upd
 - ⚠️ **Dev server sempat mati** saat `npm run build` (PID 4308 hilang, node.exe kosong) → restart **PID 6320** (`proc_1170ff66a897`, Ready in 679ms) → semua check lulus lagi
 - ⚠️ **Git:** masih 1 commit initial (`1fa8ef4`) — **34 perubahan uncommitted** (13 modified + 21 untracked) — semua PR besar belum pernah di-commit
 - ⚠️ Tab Brave perlu **`Ctrl+Shift+R`** — cek penanda #262C36 · judul di kotak · Week/Day view · hapus event · persist (refresh gak ilang)
+
+---
+
+### 51. 🚀 UPDATE 51 — Minggu, 09 Agustus 2026 · 22:04 (SEAST) — Push pertama ke GitHub
+
+BangBay buat repo GitHub `Agent-DashBoard/smartdash` dan minta dibantu push: *"aku sudah buat di github tapi gk tau cara masukin nya"*.
+
+| Langkah | Hasil |
+|---|---|
+| Cek remote | Repo GitHub ada tapi **kosong** (belum ada commit) |
+| **Keamanan** | Ditemukan **560 dari 675 file = `engine/hermes/`** (install Hermes Abbu — config.yaml, auth.lock, cache, logs) — **kemungkinan bocor secret** → ditambahkan `/engine/` ke `.gitignore` (**TIDAK di-push**) |
+| `.env*` | Sudah ada di `.gitignore` dari awal → **kredensial aman, gak bocor** |
+| Commit | `a56efe9` — "SmartDash v1.0 — dashboard kreator + Apps (Agent, Email, Skill, Notes, Calendar) + Integrations + LAPORAN" (103 file) |
+| Push | `git push -u origin main` → **SUKSES** `[new branch] main -> main` |
+| Verifikasi | Remote HEAD = `a56efe9` (sama dengan lokal) · `main...origin/main` sinkron · 0 env/engine ter-stage |
+
+**Repo publik:** https://github.com/Agent-DashBoard/smartdash
+
+**Catatan penting:**
+- `engine/hermes/` (Hermes Abbu) sengaja **TIDAK di-push** — biar config/auth/kredensial Hermes gak bocor ke publik. Kalau suatu saat repo dibuat private, baru bisa dipertimbangkan.
+- Semua kerjaan 50 update sebelumnya akhirnya **backup di GitHub** ✅
+- Kedepan: cukup `git add -A && git commit -m "..." && git push` tiap selesai fitur (bisa Moka yang kerjain)
