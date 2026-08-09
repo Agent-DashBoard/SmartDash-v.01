@@ -81,26 +81,31 @@ export function MetricCard({
   const router = useRouter();
   const meta = platform && METRIC_DATA[type]?.[platform] ? METRIC_DATA[type][platform] : null;
 
-  // ---- Data asli Zernio (kalau ada & platform cocok) ----
-  const liveAcct = live?.accounts?.find(
+  // ---- Data asli Zernio (dinamis: semua akun bila platform kosong / satu akun bila dipilih) ----
+  const matchedAccounts = live?.accounts?.filter(
     (a) => !platform || a.platform === platform.toLowerCase()
-  );
+  ) ?? [];
+  const liveAcct = matchedAccounts[0]; // untuk label/badge/icon (ambil akun pertama yang cocok)
+  const totalFollowers = matchedAccounts.reduce((s, a) => s + (a.followersCount ?? 0), 0);
   const livePosts = (live?.posts ?? []).filter(
     (p) => !platform || p.platform === platform.toLowerCase()
   );
-  const hasLive = !!liveAcct && !live?.loading;
+  const hasLive = matchedAccounts.length > 0 && !live?.loading;
 
   let liveValue: number | null = null;
   let liveDelta: string | null = null;
   if (hasLive) {
     if (type === "Follow") {
-      liveValue = liveAcct.followersCount ?? 0;
-      liveDelta = liveAcct.followersLastUpdated
+      // Semua akun (platform kosong) → jumlahkan; platform pilihan → akun tunggal
+      liveValue = totalFollowers;
+      liveDelta = matchedAccounts.length > 1
+        ? `${matchedAccounts.length} akun terhubung`
+        : liveAcct?.followersLastUpdated
         ? `terakhir ${new Date(liveAcct.followersLastUpdated).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}`
         : null;
     } else if (type === "Like") {
-      liveValue =
-        liveAcct.likesCount ?? livePosts.reduce((s: number, p) => s + (p.likeCount ?? 0), 0);
+      const aggLikes = livePosts.reduce((s: number, p) => s + (p.likeCount ?? 0), 0);
+      liveValue = matchedAccounts.length === 1 && liveAcct?.likesCount != null ? liveAcct.likesCount : aggLikes;
       liveDelta = livePosts.length ? `${livePosts.length} video` : null;
     } else if (type === "Comment") {
       liveValue = livePosts.reduce((s: number, p) => s + (p.commentCount ?? 0), 0);

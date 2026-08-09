@@ -1815,7 +1815,31 @@ BangBay: *"apakah abbu bisa merubah nya menjadi private ?"* → **BISA, SUDAH DI
 - `gh` CLI tidak terinstall → pakai **GitHub REST API** (`PATCH /repos/Agent-DashBoard/smartdash` dengan body `{"private":true}`) via curl.
 - Token didapat dari **Git Credential Manager** Windows (`git-credential-manager.exe get`) — tanpa minta password ke user, tanpa nyimpen token di file.
 - **Verifikasi**: `"private": true` + `"visibility": "private"` dari API ✅ (HTTP 200).
-- Repo `Agent-DashBoard/smartdash` sekarang **private** — cuma owner (BangBay) & kolaborator yang bisa lihat.
+- Repo `Agent-DashBoard/smartdash` sekarang **private** — hanya owner & kolaborator yang bisa lihat.
+
+---
+
+### 54. 🚀 UPDATE 54 — Minggu, 10 Agustus 2026 · 00:45 (SEAST) — HALAMAN DETAIL + DATA ASLI DI SSR 🔥
+
+BangBay: *"Buat aja semua sekalian ya Abbu, agar cepat kelar juga"* — lanjutan: semua tombol dashboard klik → halaman detail dengan **data asli di-render di server (HTML pertama sudah berisi)**.
+
+**Apa yang jadi & berfungsi:**
+1. ✏️ **Target Card bisa diatur**: ikon pensil → modal 3 input (Followers/Engagement/Konsistensi) → saved di `localStorage` (`smartdash-targets`); progres dihitung data asli (`live.accounts[0].followersCount` = 1.651 → % dari target).
+2. 📄 **5 halaman detail jalan full data asli** (`/platform/followers|likes|comments|performance|engagement`):
+   - Server component async (`fetchLiveData` → Zernio API langsung), bukan client hook — jadi **HTML pertama berisi angka asli** (1.651 followers, 124.040 likes).
+   - Header: back link biru → `/`, judul, breadcrumb, **jam + dot hijau denyut** (pola persis dashboard).
+   - Kartu angka asli (Total Followers / Likes / Komentar / Share) + **daftar akun terhubung** (avatar, @username, followers) + **daftar postingan asli** (thumbnail, tanggal, 👍💬↗️, tombol Buka ke permalink).
+   - Performance & Engagement → render `ContentPerformanceChart`/`EngagementMetricsChart` full-width di kotak pembungkus (chart tetap client, tapi dibungkus SSR page).
+3. 📈 **Chart pakai data asli dari posts Zernio** (baru file `components/dashboard/chart-data.ts`):
+   - `weeklyPerformance(posts)` → 8 bucket minggu antara post pertama & terakhir (isi Content Performance).
+   - `engagementSeries(posts)` → tiap post kronologis (21/06, 22/06, 22/07 — bukan lagi 9 titik mock 22/07-30/07).
+   - Timeline dot animasi (`buildTravelKeyframes(count)`) sekarang **dinamis** — jumlah node ikut jumlah post asli.
+   - Tooltip jujur (angka asli, tidak "14K").
+4. 🔗 **Semua badge/klik di main-content + stat-card → navigate ke halaman detail** (alert "belum tersedia" dibuang).
+
+**Files baru:** `chart-data.ts` (helper asli), `live-data.server.ts` (server fetch), `metric-detail.server.tsx` (page detail), `metric-detail-types.ts`. **Files hapus:** `metric-detail.tsx` lama (20 KB, pakai client hook + alert). `app/platform/page.tsx` → `redirect("/platform/followers")`.
+
+**Verifikasi:** BUILD_EXIT=0 (10.1s) · eslint 0 error · HTTP 200 semua route ✅ · **data asli di HTML pertama**: `curl` `/platform/engagement` → "21/06 / 22/06 / 22/07" (3 tanggal post asli) + "TWS Fitur Mewah" (content asli) + `124040` & `1651` ( angka follower/likes) ✅ · push commit `887517d` ke GitHub ✅
 
 ---
 

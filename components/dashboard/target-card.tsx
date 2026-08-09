@@ -97,10 +97,15 @@ export function TargetCard({
   }, [targets]);
 
   // ---- Progres dari DATA ASLI Zernio ----
-  const liveAcct =
-    live?.accounts?.find((a) => (platform ? platformLabel(a.platform) === platform : true)) ??
-    live?.accounts?.[0];
-  const posts = live?.posts ?? [];
+  // Semua akun (platform kosong) → agregat; platform pilihan → akun tunggal
+  const matchedAccounts =
+    live?.accounts?.filter((a) =>
+      platform ? platformLabel(a.platform) === platform : true
+    ) ?? [];
+  const totalFollowers = matchedAccounts.reduce((s, a) => s + (a.followersCount ?? 0), 0);
+  const posts = (live?.posts ?? []).filter((p) =>
+    platform ? platformLabel(p.platform) === platform : true
+  );
   const totalLikes = posts.reduce((s, p) => s + (p.likeCount ?? 0), 0);
   const totalComments = posts.reduce((s, p) => s + (p.commentCount ?? 0), 0);
   const engagement = totalLikes + totalComments;
@@ -109,9 +114,9 @@ export function TargetCard({
     {
       label: "Target Followers",
       color: "#60A5FA",
-      value: liveAcct ? pct(liveAcct.followersCount, targets.followers) : 0,
-      detail: liveAcct
-        ? `${fmt(liveAcct.followersCount)} / ${fmt(targets.followers)}`
+      value: matchedAccounts.length ? pct(totalFollowers, targets.followers) : 0,
+      detail: matchedAccounts.length
+        ? `${fmt(totalFollowers)} / ${fmt(targets.followers)}`
         : "Belum ada akun terhubung",
     },
     {
