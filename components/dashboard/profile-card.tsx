@@ -85,46 +85,63 @@ export function ProfileCard({
   const router = useRouter();
   const meta = platform && PROFILE_META[platform] ? PROFILE_META[platform] : null;
 
-  // ---- Data asli Zernio (kalau ada & platform cocok) ----
-  const liveAcct = live?.accounts?.find(
+  // ---- Data asli Zernio (kalau ada) ----
+  // FIXED: ketika platform kosong (mode "Semua Sosmed"), JANGAN pakai akun pertama.
+  // Dulu find() langsung ambil TikTok → profil langsung "arah ke TikTok".
+  // Sekarang: hanya pilih liveAcct saat platform spesifik dipilih.
+  const matchedAccounts = live?.accounts?.filter(
     (a) => !platform || a.platform === platform.toLowerCase()
-  );
+  ) ?? [];
+  const liveAcct =
+    platform && matchedAccounts.length > 0 ? matchedAccounts[0] : null;
   const livePosts = (live?.posts ?? []).filter(
     (p) => !platform || p.platform === platform.toLowerCase()
   );
-  const hasLive = !!liveAcct && !live?.loading;
+  const hasLive = matchedAccounts.length > 0 && !live?.loading;
+  // Mode "Semua Sosmed": gabungkan stat semua akun
+  const totalFollowers = matchedAccounts.reduce((s, a) => s + (a.followersCount ?? 0), 0);
+  const totalVideos = livePosts.length;
+  const totalEngagement = livePosts.reduce((s, p) => s + (p.likeCount ?? 0), 0);
 
-  const handle = hasLive
+  const handle = hasLive && liveAcct
     ? `@${liveAcct.username}`
-    : meta
-      ? meta.handle
-      : "@username_profil";
-  const bio = hasLive
+    : platform
+      ? (PROFILE_META[platform]?.handle ?? "@username")
+      : "@bangbay_audio";
+  const bio = hasLive && liveAcct
     ? liveAcct.bio || liveAcct.displayName || "Content Creator"
-    : meta
-      ? meta.bio
-      : "Content Creator | Digital Marketer | 🧠";
-  const avatarSrc = hasLive && liveAcct.profilePicture
+    : platform
+      ? (PROFILE_META[platform]?.bio ?? "Content Creator | Digital Marketer")
+      : "BangBay · Multi-Platform Creator";
+  const avatarSrc = hasLive && liveAcct?.profilePicture
     ? liveAcct.profilePicture
     : "/images/Contoh-PP-Profile.jpg";
 
   // Stat: asli kalau ada, else mock diskalakan range
   const stats = hasLive
-    ? [
-        {
-          label: liveAcct.platform === "youtube" ? "Subscribers" : "Followers",
-          value: fmtNum(Math.max(liveAcct.followersCount ?? 0, 1)),
-        },
-        ...(liveAcct.platform === "youtube"
-          ? [
-              { label: "Videos", value: fmtNum(livePosts.length || (liveAcct.videoCount ?? 0)) },
-              { label: "Views", value: fmtNum(livePosts.reduce((s, p) => s + (p.likeCount ?? 0), 0)) },
-            ]
-          : [
-              { label: "Following", value: fmtNum(liveAcct.followingCount ?? 0) },
-              { label: "Likes", value: fmtNum(liveAcct.likesCount ?? 0) },
-            ]),
-      ]
+    ? platform && liveAcct
+      ? // Mode platform tunggal: pakai data akun itu
+        [
+          {
+            label: liveAcct.platform === "youtube" ? "Subscribers" : "Followers",
+            value: fmtNum(Math.max(liveAcct.followersCount ?? 0, 1)),
+          },
+          ...(liveAcct.platform === "youtube"
+            ? [
+                { label: "Videos", value: fmtNum(livePosts.length || (liveAcct.videoCount ?? 0)) },
+                { label: "Views", value: fmtNum(livePosts.reduce((s, p) => s + (p.likeCount ?? 0), 0)) },
+              ]
+            : [
+                { label: "Following", value: fmtNum(liveAcct.followingCount ?? 0) },
+                { label: "Likes", value: fmtNum(liveAcct.likesCount ?? 0) },
+              ]),
+        ]
+      : // FIXED: Mode "Semua Sosmed" → agregat semua akun (bukan akun pertama)
+        [
+          { label: "Total Followers", value: fmtNum(Math.max(totalFollowers, 1)) },
+          { label: "Total Videos", value: fmtNum(totalVideos || matchedAccounts.length) },
+          { label: "Total Engagement", value: fmtNum(totalEngagement) },
+        ]
     : (meta ? meta.stats : MINI_STATS).map((s) => ({
         ...s,
         value: fmtNum(Math.max(Math.round(parseNum(s.value) * RANGE_FACTOR[days]), 1)),
@@ -132,7 +149,7 @@ export function ProfileCard({
 
   // View Profile → ke halaman profil asli platform
   const handleViewProfile = () => {
-    if (hasLive && liveAcct.profileUrl) {
+    if (platform && liveAcct?.profileUrl) {
       window.open(liveAcct.profileUrl, "_blank");
       return;
     }

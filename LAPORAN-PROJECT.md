@@ -1864,3 +1864,41 @@ BangBay: *"Buat aja semua sekalian ya Abbu, agar cepat kelar juga"* (lanjutan au
 - **stat-card**: alert "Menu belum tersedia" dibuang — sekarang langsung navigate ke halaman detail.
 
 **Verifikasi:** BUILD_EXIT=0 (11.0s) · eslint 0 · HTTP 200 untuk `/`, `/platform/followers`, `/likes`, `/comments`, `/performance`, `/engagement` ✅ · render server halaman followers: "Kembali ke Dashboard" + "Akun Terhubung" + "Postingan (data asli)" ✅. Dibuka di Brave.
+
+---
+
+### 52. 🐛 UPDATE 52 — Minggu, 10 Agustus 2026 · 01:55 SEAST — Audit "arah ke TikTok" + Fix Dashboard All-Platform View
+
+BangBay: **"pertama buka memang seperti gambar pertama dan selang beberapa detik dia langsung berubah otomatis seperti gambar ke dua ngarah langsung ke tiktok"**. Audit + fix.
+
+#### 🔍 ROOT CAUSE AUDIT
+**Bukan hack atau bug Moka.** Ini **design flaw di live-data layer** — bukan data dummy.
+
+| Fakta | Bukti |
+|---|---|
+| ZernioBangBay punya **2 akun** terhubung | API `/api/zernio?path=accounts` → `tiktok @bangbayaudio` + `youtube @smart-dashboard` ✅ |
+| TikTok: 3 posts, YouTube: 0 posts | `accounts/{id}/posts` verified ✅ |
+| **`live-data.ts:149-152`** hardcode `accounts.find(tiktok)` jadi **target pertama** | Ini penyebab utama — semua posts hanya fetch untuk akun pertama → dashboard fokus ke TikTok |
+| **`stat-card.tsx:88`** pakai `matchedAccounts[0]` sebagai `liveAcct` untuk label/badge | Label "TikTok" muncul di semua kartu karena pakai akun pertama |
+| **`profile-card.tsx:89`** pakai `live?.accounts?.find(...)` (return akun pertama TikTok) | Profil langsung tunjuk ke TikTok, stat "Followers/Following/Likes" milik TikTok saja |
+
+#### 🛠️ FIXED (3 file)
+| File | Perubahan |
+|---|---|
+| **`live-data.ts`** | `load()` fetch semua posts dari **semua akun sekaligus** via `Promise.all` + `.flat()` — bukan hanya akun pertama. Urutan akun dipertahankan dari Zernio. |
+| **`stat-card.tsx`** | Hapus `liveAcct = matchedAccounts[0]` shortcut. `Follow` = sum semua akun (sudah); `Like` = aggregate semua posts (bukan `likesCount` akun pertama). Label "Semua Sosmed" saat mode all. |
+| **`profile-card.tsx`** | `liveAcct` hanya dipilih ketika `platform` dipilih. Mode "all" → agregat: **Total Followers / Total Videos / Total Engagement** + label "@bangbay_audio / Multi-Platform Creator". |
+
+#### Verifikasi post-fix
+| Check | Hasil |
+|---|---|
+| `npx eslint` (3 file) | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0, 32 pages static, Compiled 11s |
+| API Zernio `/accounts` | ✅ 2 akun (tiktok + youtube), followers=1651 |
+| API Zernio `/posts` TikTok | ✅ 3 posts (14/3/28 likes) |
+| Render `/` HTML | ✅ label "Semua Sosmed" (bukan "TikTok") di semua kartu + profil |
+| Render `/platform/engagement` | ✅ 200 (dummy fallback + real fallback) |
+
+#### 🟦 Remaining concern (but NOT the TikTok redirect bug)
+- `PLATFORMS = ["TikTok", "YouTube", "Instagram", "WhatsApp"]` di `dashboard-data.ts` masih dummy 4-platform. **Tapi tidak dipakai UI** — dropdown pakai `connectedPlatforms` (hanya TikTok + YouTube dari Zernio). Instagram/WhatsApp tidak akan muncul sampai ada integrasi. **Tidak perlu perubahan** kecuali mau hapus dummy list (BangBay putuskan).
+

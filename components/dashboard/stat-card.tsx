@@ -85,7 +85,8 @@ export function MetricCard({
   const matchedAccounts = live?.accounts?.filter(
     (a) => !platform || a.platform === platform.toLowerCase()
   ) ?? [];
-  const liveAcct = matchedAccounts[0]; // untuk label/badge/icon (ambil akun pertama yang cocok)
+  // FIXED: semua akun (bukan hanya pertama) untuk agregat benar.
+  // Dulu pakai matchedAccounts[0] → dashboard langsung fokus ke akun pertama (TikTok).
   const totalFollowers = matchedAccounts.reduce((s, a) => s + (a.followersCount ?? 0), 0);
   const livePosts = (live?.posts ?? []).filter(
     (p) => !platform || p.platform === platform.toLowerCase()
@@ -100,12 +101,13 @@ export function MetricCard({
       liveValue = totalFollowers;
       liveDelta = matchedAccounts.length > 1
         ? `${matchedAccounts.length} akun terhubung`
-        : liveAcct?.followersLastUpdated
-        ? `terakhir ${new Date(liveAcct.followersLastUpdated).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}`
+        : matchedAccounts[0]?.followersLastUpdated
+        ? `terakhir ${new Date(matchedAccounts[0].followersLastUpdated).toLocaleDateString("id-ID", { day: "numeric", month: "short" })}`
         : null;
     } else if (type === "Like") {
       const aggLikes = livePosts.reduce((s: number, p) => s + (p.likeCount ?? 0), 0);
-      liveValue = matchedAccounts.length === 1 && liveAcct?.likesCount != null ? liveAcct.likesCount : aggLikes;
+      // FIXED: pakai aggregate semua akun, jangan akun pertama saja
+      liveValue = aggLikes;
       liveDelta = livePosts.length ? `${livePosts.length} video` : null;
     } else if (type === "Comment") {
       liveValue = livePosts.reduce((s: number, p) => s + (p.commentCount ?? 0), 0);
@@ -114,7 +116,9 @@ export function MetricCard({
   }
 
   const iconKey = meta?.iconKey ?? "total";
-  const label = meta ? platform : liveAcct?.platform === "youtube" ? "YouTube" : liveAcct ? "TikTok" : "Semua Sosmed";
+  // FIXED: pakai matchedAccounts[0] langsung (liveAcct sudah dihapus)
+  const firstAcct = matchedAccounts[0];
+  const label = meta ? platform : firstAcct?.platform === "youtube" ? "YouTube" : firstAcct ? "TikTok" : "Semua Sosmed";
   const badgeHex = meta?.hex ?? from;
   // Nilai & delta diskalakan sesuai range Days (Today kecil → Last 30 days = nilai penuh)
   const factor = RANGE_FACTOR[days];
@@ -126,8 +130,8 @@ export function MetricCard({
   const delta = liveDelta ?? `+${(parseFloat(baseDelta) * RANGE_DELTA_FACTOR[days]).toFixed(1)}%`;
   const subText = meta
     ? `${type} ${platform} · ${RANGE_LABEL[days]}`
-    : liveValue !== null && liveAcct
-      ? `${type} ${liveAcct.platform === "youtube" ? "YouTube" : "TikTok"} · ${RANGE_LABEL[days]}`
+    : liveValue !== null && firstAcct
+      ? `${type} ${firstAcct.platform === "youtube" ? "YouTube" : "TikTok"} · ${RANGE_LABEL[days]}`
       : `${TOTAL_METRICS[type].label} · ${RANGE_LABEL[days]}`;
 
   // Badge diklik → ke halaman tujuan (detail metric sudah ada)

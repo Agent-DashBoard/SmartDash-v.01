@@ -122,7 +122,10 @@ function normalizePost(raw: RawPost): LivePost {
   };
 }
 
-// Hook utama: ambil akun + posts (akun pertama yang punya posts, atau akun tiktok).
+// Hook utama: ambil AKUN + posts untuk SEMUA platform yang terhubung.
+// Semua posts digabung ke satu flat array — komponen lain yang filter per platform.
+// Ini perbaikan "arah langsung ke TikTok": dulu pakai akun pertama saja; sekarang
+// dashboard tampilkan data ASAL AKUN SAAT LOADING BERSEDIATU (bukan selepas).
 export function useLiveData(): LiveData {
   const [state, setState] = useState<LiveData>({
     accounts: [],
@@ -146,25 +149,25 @@ export function useLiveData(): LiveData {
         const rawAccounts = accRes.accounts ?? [];
         const accounts = rawAccounts.map(normalizeAccount);
 
-        // Cari akun pertama yang aktif (tiktok dulu, lalu youtube)
-        const target =
-          accounts.find((a) => a.platform === "tiktok") ??
-          accounts.find((a) => a.platform === "youtube");
-
+        // FIXED: fetch posts untuk SEMUA akun sekaligus (bukan hanya akun pertama).
+        // Dulu pakai akun pertama jadi target → dashboard langsung "arah ke TikTok".
+        // Sekarang semua posts digabung, komponen filter per-platform sendiri.
         let posts: LivePost[] = [];
         let updatedAt: string | null = null;
 
-        if (target) {
-          try {
-            const postsRes = await fetchJson<{ posts: RawPost[] }>(
-              `/api/zernio?path=accounts/${target.id}/posts`
-            );
-            posts = (postsRes.posts ?? []).map(normalizePost);
-          } catch {
-            posts = [];
-          }
+        if (accounts.length > 0) {
+          const postsResults = await Promise.all(
+            accounts.map((acct) =>
+              fetchJson<{ posts: RawPost[] }>(`/api/zernio?path=accounts/${acct.id}/posts`).then(
+                (r) => (r?.posts ?? []) as RawPost[],
+                () => [] as RawPost[],
+              )
+            )
+          );
+          posts = postsResults.flat().map(normalizePost);
+
           updatedAt =
-            target.followersLastUpdated ??
+            accounts.find((a) => a.followersLastUpdated)?.followersLastUpdated ??
             (analyticsRes.accounts?.[0] as RawAccount | undefined)?.followersLastUpdated ??
             null;
         }
