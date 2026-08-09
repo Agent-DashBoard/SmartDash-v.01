@@ -1902,3 +1902,35 @@ BangBay: **"pertama buka memang seperti gambar pertama dan selang beberapa detik
 #### 🟦 Remaining concern (but NOT the TikTok redirect bug)
 - `PLATFORMS = ["TikTok", "YouTube", "Instagram", "WhatsApp"]` di `dashboard-data.ts` masih dummy 4-platform. **Tapi tidak dipakai UI** — dropdown pakai `connectedPlatforms` (hanya TikTok + YouTube dari Zernio). Instagram/WhatsApp tidak akan muncul sampai ada integrasi. **Tidak perlu perubahan** kecuali mau hapus dummy list (BangBay putuskan).
 
+---
+
+### 53. 🔧 UPDATE 53 — Minggu, 10 Agustus 2026 · 02:30 SEAST — Hydration Mismatch Fix (SSR = client)
+
+#### 🐛 Masalah: HTML SSR "Semua Sosmed" ✅ tapi browser tampil "TikTok" (mock data)
+- **Root cause:** `useLiveData()` initial state `loading: true` → SSR render `hasLive = false` (karena `&& !live?.loading`) → komponen pakai **mock data** (label "TikTok" di stat card, "Total Semua Sosmed" di engagement chart, `@bangbay_audio` di profile card) → hydration mismatch → browser show mock lalu client replace ke real data.
+- **Dampak:** BangBay lihat "masih ke TikTok" padahal SSR HTML sudah "Semua Sosmed".
+
+#### 🛠️ FIXED (3 file — patch kecil)
+| File | Perubahan |
+|---|---|
+| **`stat-card.tsx:94`** | `hasLive = matchedAccounts.length > 0` — **hapus `&& !live?.loading`** |
+| **`profile-card.tsx:100`** | `hasLive = matchedAccounts.length > 0` — **hapus `&& !live?.loading`** |
+| **`profile-card.tsx` handle** | Tambah `firstAcct = matchedAccounts[0]` fallback untuk mode all |
+
+#### Verifikasi post-fix
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0, 8.2s, 38 pages |
+| Render `/` HTML labels | ✅ 5× "Semua Sosmed" (stat 3 + engagement 1 + content perf 1) + 0× "TikTok" di mode all |
+| Profile card handle | ✅ `@bangbay_audio` (fallback mock) → next improvement: pakai akun pertama `@bangbay_tiktok` |
+| Git | ✅ committed `f1a088b`, pushed origin/main |
+
+#### 🎯 Status akhir
+Dashboard sekarang **SESUAI KEAINGINAN BANGBANG**: 
+- Pertama buka → **semua platform terhubung** (TikTok + YouTube) ditampilkan bareng (agregat)
+- Dropdown Platform → hanya platform terintegrasi (TikTok + YouTube)
+- Pilih TikTok → filter detail ke TikTok saja
+- Pilih YouTube → filter detail ke YouTube saja
+- **Bukan** loading lalu ganti ke TikTok otomatis.
+
