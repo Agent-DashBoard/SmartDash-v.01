@@ -9,6 +9,7 @@ import { ContentPerformanceChart } from "@/components/dashboard/content-performa
 import { EngagementMetricsChart } from "@/components/dashboard/engagement-metrics";
 import { platformLabel } from "@/components/dashboard/chart-data";
 import { type DetailType, META } from "@/components/platform/metric-detail-types";
+import { type LiveData } from "@/components/dashboard/live-data";
 
 // Wrapper loading — sambil tunggu data, tampilkan state
 function LoadingSkeleton() {
@@ -21,13 +22,13 @@ function LoadingSkeleton() {
 
 export default async function MetricDetailPage({
   type,
-  ssrAggregated,
+  liveOverride,
 }: {
   type: DetailType;
-  // Pre-aggregated bar dari server parent — supaya SSR & client dapet value sama persis.
-  ssrAggregated?: Array<{ label: string; total: number }>;
+  // Pre-fetched data dari parent (hemat 1 round-trip). Fallback ke fetchLiveData().
+  liveOverride?: LiveData;
 }) {
-  const live = await fetchLiveData();
+  const live = liveOverride ?? (await fetchLiveData());
   const meta = META[type];
   const connectedPlatforms = Array.from(
     new Set(live.accounts.map((a) => platformLabel(a.platform)))
@@ -109,7 +110,6 @@ export default async function MetricDetailPage({
                 days="Last 30 days"
                 connectedPlatforms={connectedPlatforms}
                 live={live}
-                ssrAggregated={ssrAggregated}
               />
             </div>
           </Suspense>

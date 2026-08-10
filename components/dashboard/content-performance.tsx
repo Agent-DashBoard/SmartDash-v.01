@@ -43,9 +43,6 @@ export function ContentPerformanceChart({
   days,
   connectedPlatforms,
   live,
-  // SSR pre-aggregated data — kalau ada, langsung pakai (server yang hitung).
-  // Ini ngebuang hydration mismatch karena server & client dapet value sama persis.
-  ssrAggregated,
 }: {
   platform: string;
   days: DayRange;
@@ -53,61 +50,61 @@ export function ContentPerformanceChart({
   connectedPlatforms: string[];
   // Data live Zernio — kalau ada posts, chart pakai data ASLI (weeklyPerformance)
   live?: LiveData;
-  // Pre-aggregated bar (semua platform digabung). Dari server (mode Semua).
-  ssrAggregated?: Array<{ label: string; total: number }>;
 }) {
   const router = useRouter();
   const hex = platform ? CONTENT_PLATFORM_COLORS[platform] ?? "#F97316" : "#F97316";
   const iconKey = platform ? PROFILE_META[platform]?.iconKey ?? "tiktok" : "total";
 
   // Data ASLI dari posts Zernio (8 bucket waktu antara post pertama & terakhir);
-  // fallback ke mock kalau live undefined (no SSR seed) ATAU posts benar-benar kosong.
+  // null kalau live undefined ATAU tidak ada post.
   const realData = live ? weeklyPerformance(live.posts ?? []) : null;
-
-  // Mode SEMUA (platform kosong): aggregate semua platform → 1 seri "total",
-  // supaya konsisten dgn judul "Total Semua Sosmed" (bukan bar per platform
-  // yang kalo cuma 1 platform berdata jadi keliatan "ke TikTok").
-  const aggregated = realData
-    ? realData.map((row) => {
-        const sum = Object.entries(row)
-          .filter(([k]) => k !== "label")
-          .reduce((acc, [, v]) => acc + (typeof v === "number" ? v : 0), 0);
-        return { label: row.label, total: sum };
-      })
-    : null;
-  // Pakai ssrAggregated kalau ada (dari server parent) → konsistensi SSR ↔ client.
-  const effectiveAggregated = ssrAggregated ?? aggregated;
-  const useAggregated = !platform && effectiveAggregated !== null;
+  // Untuk akun terintegrasi yang belum posting (kolom gak ada di realData),
+  // tambahkan kolom = 0 di tiap bucket biar legend konsisten (transparan:
+  // user lihat akun terhubung meski belum ada post).
+  const realDataWithZeroCols = (() => {
+    if (!live || !realData || realData.length === 0) return realData;
+    const connectedLabels = connectedPlatforms; // ["TikTok", "YouTube", ...]
+    const existingCols = realData.length > 0
+      ? Object.keys(realData[0]).filter((k) => k !== "label")
+      : [];
+    const missing = connectedLabels.filter((l) => !existingCols.includes(l));
+    if (missing.length === 0) return realData;
+    return realData.map((row) => {
+      const copy = { ...row };
+      for (const m of missing) copy[m] = 0;
+      return copy;
+    });
+  })();
+  const hasRealData = realDataWithZeroCols !== null && realDataWithZeroCols.length > 0;
+  const useAggregated = false; // Disabled: pakai per-platform series
 
   // Data final: kalau live sudah ada (dari SSR atau client fetch selesai),
-  // HARUS pakai data real. Mock HANYA kalau live undefined/no posts sama sekali.
-  const data =
-    useAggregated
-      ? effectiveAggregated!
-      : realData
-        ? realData
-        : CONTENT_PERF_DATA.slice(-RANGE_WINDOW[days]);
+  // HARUS pakai data real. Mock HANYA kalau live undefined (no akun terintegrasi).
+  const data = hasRealData
+    ? realDataWithZeroCols
+    : live && live.accounts.length === 0
+      ? CONTENT_PERF_DATA.slice(-RANGE_WINDOW[days]) // live exist tapi 0 akun → mock sebagai preview
+      : realDataWithZeroCols ?? []; // akun ada tapi post kosong → array kosong (chart kosong)
 
-  // Platform yang aktif di chart: untuk data asli = kolom yang ada di data;
+  // Platform yang aktif: untuk data asli = kolom platform yang ada di data;
   // untuk mock = platform terintegrasi yang punya kolom di data contoh.
   const presentColumns =
     data.length > 0
       ? Object.keys(data[0]).filter((k) => k !== "label")
       : [];
-  const active = useAggregated
-    ? ["total"]
-    : realData
-      ? presentColumns
-      : connectedPlatforms.filter((p) =>
-          (CONTENT_PERF_DATA[0] as unknown as Record<string, number>)[p] !== undefined
-        );
+  const active = hasRealData
+    ? presentColumns
+    : connectedPlatforms.filter((p) =>
+        (CONTENT_PERF_DATA[0] as unknown as Record<string, number>)[p] !== undefined
+      );
 
   // Config chart — dipakai tooltip (dot + label + nilai) & label series
+  // Warna series HARUS ikut warna ikon sosmed (TikTok=cyan, YouTube=red, dll)
   const chartConfig: ChartConfig = {};
   for (const p of active) {
     chartConfig[p] = {
       label: p === "total" ? "Semua Sosmed" : p,
-      color: p === "total" ? "#F97316" : CONTENT_PLATFORM_COLORS[p],
+      color: CONTENT_PLATFORM_COLORS[p] ?? "#F97316",
     };
   }
   if (platform) {
