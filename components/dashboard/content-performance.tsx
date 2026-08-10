@@ -177,6 +177,13 @@ export function ContentPerformanceChart({
               <span
                 key={name}
                 className="flex items-center gap-1.5 text-[10px] font-semibold text-[#94A3B8]"
+                title={
+                  // Hint kalau series ini punya 0 likes (belum ada post) → user paham
+                  // kenapa gak ada bar di chart.
+                  data.every((row) => Number((row as Record<string, number | string>)[name] ?? 0) === 0)
+                    ? `${name} — belum ada post (akun terhubung)`
+                    : undefined
+                }
               >
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: CONTENT_PLATFORM_COLORS[name] }} />
                 {name}
