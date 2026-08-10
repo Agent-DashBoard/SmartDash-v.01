@@ -42,7 +42,10 @@ export function weeklyPerformance(
     };
     for (const p of sorted) {
       const t = new Date(p.createdTime).getTime();
-      if (t >= start && t < end) {
+      // Bucket terakhir INCLUSIVE (<= end) biar post paling baru (tepat di max) tidak hilang.
+      const inBucket =
+        t >= start && (i === 7 ? t <= end : t < end);
+      if (inBucket) {
         const key = platformLabel(p.platform);
         row[key] = ((row[key] as number) ?? 0) + (p.likeCount ?? 0);
       }
