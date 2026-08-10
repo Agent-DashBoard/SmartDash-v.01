@@ -19,7 +19,14 @@ function LoadingSkeleton() {
   );
 }
 
-export default async function MetricDetailPage({ type }: { type: DetailType }) {
+export default async function MetricDetailPage({
+  type,
+  ssrAggregated,
+}: {
+  type: DetailType;
+  // Pre-aggregated bar dari server parent — supaya SSR & client dapet value sama persis.
+  ssrAggregated?: Array<{ label: string; total: number }>;
+}) {
   const live = await fetchLiveData();
   const meta = META[type];
   const connectedPlatforms = Array.from(
@@ -102,6 +109,7 @@ export default async function MetricDetailPage({ type }: { type: DetailType }) {
                 days="Last 30 days"
                 connectedPlatforms={connectedPlatforms}
                 live={live}
+                ssrAggregated={ssrAggregated}
               />
             </div>
           </Suspense>

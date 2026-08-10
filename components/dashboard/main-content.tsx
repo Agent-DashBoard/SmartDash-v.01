@@ -146,7 +146,14 @@ function DayRangeFilter({
 
 /* ============ Main (perakit) ============ */
 
-export default function MainContent({ initialLive }: { initialLive?: LiveData }) {
+export default function MainContent({
+  initialLive,
+  ssrAggregated,
+}: {
+  initialLive?: LiveData;
+  // Pre-aggregated bar dari server — biar SSR & client konsisten (no hydration drift).
+  ssrAggregated?: Array<{ label: string; total: number }>;
+}) {
   const now = useClock();
   // Fallback pakai jam PC/server biar SSR & client konsisten (Time-based = PC)
   const hour = now ? now.getHours() : new Date().getHours();
@@ -234,6 +241,7 @@ export default function MainContent({ initialLive }: { initialLive?: LiveData })
               days={days}
               connectedPlatforms={connectedPlatforms}
               live={live}
+              ssrAggregated={ssrAggregated}
             />
           </div>
         </div>

@@ -55,6 +55,20 @@ export function weeklyPerformance(
   return buckets;
 }
 
+// Aggregate semua kolom platform per bucket jadi 1 seri "total".
+// Dipakai untuk Content Performance mode "Semua Sosmed" (server + client).
+export function aggregateTotal(
+  buckets: Array<Record<string, number | string>> | null
+): Array<{ label: string; total: number }> | null {
+  if (!buckets) return null;
+  return buckets.map((row) => {
+    const sum = Object.entries(row)
+      .filter(([k]) => k !== "label")
+      .reduce((acc, [, v]) => acc + (typeof v === "number" ? v : 0), 0);
+    return { label: String(row.label ?? ""), total: sum };
+  });
+}
+
 // Seri engagement per post (kronologis) — untuk Area chart.
 // Null kalau gak ada posts untuk platform tsb.
 export function engagementSeries(

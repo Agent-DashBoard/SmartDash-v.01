@@ -43,6 +43,9 @@ export function ContentPerformanceChart({
   days,
   connectedPlatforms,
   live,
+  // SSR pre-aggregated data — kalau ada, langsung pakai (server yang hitung).
+  // Ini ngebuang hydration mismatch karena server & client dapet value sama persis.
+  ssrAggregated,
 }: {
   platform: string;
   days: DayRange;
@@ -50,13 +53,15 @@ export function ContentPerformanceChart({
   connectedPlatforms: string[];
   // Data live Zernio — kalau ada posts, chart pakai data ASLI (weeklyPerformance)
   live?: LiveData;
+  // Pre-aggregated bar (semua platform digabung). Dari server (mode Semua).
+  ssrAggregated?: Array<{ label: string; total: number }>;
 }) {
   const router = useRouter();
   const hex = platform ? CONTENT_PLATFORM_COLORS[platform] ?? "#F97316" : "#F97316";
   const iconKey = platform ? PROFILE_META[platform]?.iconKey ?? "tiktok" : "total";
 
   // Data ASLI dari posts Zernio (8 bucket waktu antara post pertama & terakhir);
-  // fallback ke mock kalau belum ada posts.
+  // fallback ke mock kalau live undefined (no SSR seed) ATAU posts benar-benar kosong.
   const realData = live ? weeklyPerformance(live.posts ?? []) : null;
 
   // Mode SEMUA (platform kosong): aggregate semua platform → 1 seri "total",
@@ -70,11 +75,18 @@ export function ContentPerformanceChart({
         return { label: row.label, total: sum };
       })
     : null;
-  const useAggregated = !platform && aggregated !== null;
+  // Pakai ssrAggregated kalau ada (dari server parent) → konsistensi SSR ↔ client.
+  const effectiveAggregated = ssrAggregated ?? aggregated;
+  const useAggregated = !platform && effectiveAggregated !== null;
 
+  // Data final: kalau live sudah ada (dari SSR atau client fetch selesai),
+  // HARUS pakai data real. Mock HANYA kalau live undefined/no posts sama sekali.
   const data =
-    (useAggregated ? aggregated : realData) ??
-    CONTENT_PERF_DATA.slice(-RANGE_WINDOW[days]);
+    useAggregated
+      ? effectiveAggregated!
+      : realData
+        ? realData
+        : CONTENT_PERF_DATA.slice(-RANGE_WINDOW[days]);
 
   // Platform yang aktif di chart: untuk data asli = kolom yang ada di data;
   // untuk mock = platform terintegrasi yang punya kolom di data contoh.
