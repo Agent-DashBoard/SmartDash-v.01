@@ -118,7 +118,11 @@ export function MetricCard({
   const iconKey = meta?.iconKey ?? "total";
   // FIXED: pakai matchedAccounts[0] langsung (liveAcct sudah dihapus)
   const firstAcct = matchedAccounts[0];
-  const label = meta ? platform : firstAcct?.platform === "youtube" ? "YouTube" : firstAcct ? "TikTok" : "Semua Sosmed";
+  // Kalau platform kosong → "Semua Sosmed" (dashboard default, agregat semua akun)
+  // Kalau platform dipilih → labelnya pakai nama platform tsb
+  const label = platform
+    ? (meta ? platform : firstAcct?.platform === "youtube" ? "YouTube" : firstAcct ? "TikTok" : "Semua Sosmed")
+    : "Semua Sosmed";
   const badgeHex = meta?.hex ?? from;
   // Nilai & delta diskalakan sesuai range Days (Today kecil → Last 30 days = nilai penuh)
   const factor = RANGE_FACTOR[days];
@@ -130,9 +134,9 @@ export function MetricCard({
   const delta = liveDelta ?? `+${(parseFloat(baseDelta) * RANGE_DELTA_FACTOR[days]).toFixed(1)}%`;
   const subText = meta
     ? `${type} ${platform} · ${RANGE_LABEL[days]}`
-    : liveValue !== null && firstAcct
-      ? `${type} ${firstAcct.platform === "youtube" ? "YouTube" : "TikTok"} · ${RANGE_LABEL[days]}`
-      : `${TOTAL_METRICS[type].label} · ${RANGE_LABEL[days]}`;
+    : platform
+      ? `${type} ${firstAcct?.platform === "youtube" ? "YouTube" : "TikTok"} · ${RANGE_LABEL[days]}`
+      : `${type} Semua Sosmed · ${RANGE_LABEL[days]}`;
 
   // Badge diklik → ke halaman tujuan (detail metric sudah ada)
   const handleBadgeClick = () => {
@@ -155,7 +159,7 @@ export function MetricCard({
         <button
           type="button"
           onClick={handleBadgeClick}
-          title={`Buka halaman ${type} — belum tersedia`}
+          title={`Buka halaman ${type} — data asli`}
           className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:opacity-80"
           style={{ backgroundColor: `${badgeHex}25` }}
         >

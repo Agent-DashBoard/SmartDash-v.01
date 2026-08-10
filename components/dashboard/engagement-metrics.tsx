@@ -109,18 +109,30 @@ export function EngagementMetricsChart({
 
   // Data ASLI dari posts Zernio (per post, kronologis) kalau ada; fallback ke gelombang mock.
   // realData?.length ? ... : null — array kosong (belum load) tetap jadi null agar pakai mock.
-  const realData = live ? engagementSeries(live.posts ?? [], platform || undefined) : null;
+  // FIXED: realData hanya berisi kalau memang ada posts (bukan initial kosong)
+  const realData =
+    live && !live.loading && live.posts?.length > 0
+      ? engagementSeries(live.posts, platform || undefined)
+      : null;
   const realList = realData?.length ? realData : null;
+
+  // Fallback logic cerdas:
+  // - live.error → pakai mock (data gagal fetch)
+  // - live.posts.length > 0 → pakai realList (data asli)
+  // - live ada tapi posts kosong (semua akun belum ada post) → mock
+  const useMock = !realList && (live?.error || (live && live.posts?.length === 0 && live.accounts?.length > 0));
   const data = realList
     ? realList
-    : buildWave(AMP_SCALE[days]).map((d, i) => ({
-        ...d,
-        likes: platform ? Math.round(d.likes * (PLATFORM_SCALE[platform] ?? 1)) : d.likes,
-        label: TIMELINE_DATES[i],
-      }));
+    : useMock
+      ? buildWave(AMP_SCALE[days]).map((d, i) => ({
+          ...d,
+          likes: platform ? Math.round(d.likes * (PLATFORM_SCALE[platform] ?? 1)) : d.likes,
+          label: TIMELINE_DATES[i],
+        }))
+      : []; // loading → kosong (chart kosong, bukan mock)
 
   // Label timeline: data asli pakai tanggal post; mock pakai TIMELINE_DATES
-  const timelineLabels = realList ? data.map((d) => d.label) : TIMELINE_DATES;
+  const timelineLabels = realList ? (data?.map((d) => d.label) ?? []) : TIMELINE_DATES;
   const activeDate = timelineLabels[timelineLabels.length - 1];
 
   // Seri aktif: platform dipilih → 1 seri (likes di-scale) warna platform; selain itu 2 seri.
@@ -186,7 +198,7 @@ export function EngagementMetricsChart({
       <div className="mt-3 h-[190px]">
         <ChartContainer config={chartConfig} initialDimension={{ width: 400, height: 190 }}>
           <AreaChart
-            data={data}
+            data={data ?? realList ?? []}
             margin={{ left: 12, right: 12, top: 8, bottom: 0 }}
           >
             <defs>
