@@ -14,7 +14,7 @@ import { ContentPerformanceChart } from "./content-performance";
 import { ProfileCard } from "./profile-card";
 import { TopPostsTable } from "./top-posts-table";
 import { DAY_RANGES, DayRange } from "./dashboard-data";
-import { useLiveData } from "./live-data";
+import { useLiveData, type LiveData } from "./live-data";
 
 // Konfigurasi 3 kartu metric yang dirender (assembly-level)
 const STAT_CARDS = [
@@ -146,7 +146,7 @@ function DayRangeFilter({
 
 /* ============ Main (perakit) ============ */
 
-export default function MainContent() {
+export default function MainContent({ initialLive }: { initialLive?: LiveData }) {
   const now = useClock();
   // Fallback pakai jam PC/server biar SSR & client konsisten (Time-based = PC)
   const hour = now ? now.getHours() : new Date().getHours();
@@ -159,7 +159,8 @@ export default function MainContent() {
   const [days, setDays] = useState<DayRange>("Last 30 days");
 
   // Data asli dari Zernio (TikTok @bangbayaudio, YouTube @smart-dashboard)
-  const live = useLiveData();
+  // initialLive (dari SSR) → langsung tampil tanpa flicker mock; hook tetap refetch untuk update
+  const live = useLiveData(initialLive);
 
   // Dropdown Platform = HANYA platform yang terintegrasi (prinsip: dashboard
   // menampilkan yang disambungkan saja). Kalau besok penyewa integrasi IG,
