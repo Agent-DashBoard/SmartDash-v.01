@@ -107,7 +107,7 @@ function normalizeAccount(raw: RawAccount): LiveAccount {
   };
 }
 
-function normalizePost(raw: RawPost): LivePost {
+function normalizePost(raw: RawPost, platform?: string): LivePost {
   return {
     id: raw.id ?? "",
     message: raw.message ?? "",
@@ -118,7 +118,7 @@ function normalizePost(raw: RawPost): LivePost {
     likeCount: raw.likeCount ?? 0,
     commentCount: raw.commentCount ?? 0,
     shareCount: raw.shareCount ?? 0,
-    platform: raw.platform ?? "",
+    platform: platform ?? raw.platform ?? "",
   };
 }
 
@@ -160,6 +160,9 @@ export function useLiveData(seed?: LiveData): LiveData {
         let updatedAt: string | null = null;
 
         if (accounts.length > 0) {
+          // FIXED: pass platform akun ke normalizePost — endpoint posts Zernio
+          // TIDAK menyertakan field 'platform' per post, jadi ambil dari akunnya.
+          // Sebelumnya platform post = "" → chart & Top Posts gak tau itu YouTube.
           const postsResults = await Promise.all(
             accounts.map((acct) =>
               fetchJson<{ posts: RawPost[] }>(`/api/zernio?path=accounts/${acct.id}/posts`).then(
@@ -168,7 +171,9 @@ export function useLiveData(seed?: LiveData): LiveData {
               )
             )
           );
-          posts = postsResults.flat().map(normalizePost);
+          posts = accounts.flatMap((acct, i) =>
+            (postsResults[i] ?? []).map((p) => normalizePost(p, acct.platform))
+          );
 
           updatedAt =
             accounts.find((a) => a.followersLastUpdated)?.followersLastUpdated ??

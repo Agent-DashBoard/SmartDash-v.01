@@ -5,6 +5,7 @@
 
 import Image from "next/image";
 import { fmtNum } from "./dashboard-data";
+import { platformLabel } from "./chart-data";
 import { LiveData } from "./live-data";
 
 const TOP_POSTS_MOCK = [
@@ -81,7 +82,7 @@ export function TopPostsTable({
                         {row.message || "Tanpa caption"}
                       </span>
                     </div>
-                    <span>TikTok</span>
+                    <span>{row.platform ? platformLabel(row.platform) : "TikTok"}</span>
                     <span>{fmtNum(row.likeCount ?? 0)}</span>
                     <span>{fmtNum(row.commentCount ?? 0)}</span>
                     <div className="mx-auto flex h-[35px] w-[57px] items-center justify-center rounded-[5px] bg-[#0D201F]">

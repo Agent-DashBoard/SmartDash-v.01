@@ -15,7 +15,7 @@ import {
 } from "../ui/chart";
 import { PlatformIcon } from "./platform-icon";
 import { PROFILE_META } from "./profile-card";
-import { weeklyPerformance } from "./chart-data";
+import { weeklyPerformance, platformLabel } from "./chart-data";
 import { LiveData } from "./live-data";
 import {
   DayRange,
@@ -177,10 +177,13 @@ export function ContentPerformanceChart({
                 key={name}
                 className="flex items-center gap-1.5 text-[10px] font-semibold text-[#94A3B8]"
                 title={
-                  // Hint kalau series ini punya 0 likes (belum ada post) → user paham
-                  // kenapa gak ada bar di chart.
+                  // Hint kalau series ini punya 0 likes total → user paham kenapa
+                  // gak ada bar tinggi di chart. (Beda dgn "belum ada post": punya
+                  // post tapi belum ada like — upload baru.)
                   data.every((row) => Number((row as Record<string, number | string>)[name] ?? 0) === 0)
-                    ? `${name} — belum ada post (akun terhubung)`
+                    ? hasRealData && (live?.posts ?? []).some((p) => platformLabel(p.platform) === name)
+                      ? `${name} — baru upload, belum ada like`
+                      : `${name} — belum ada post (akun terhubung)`
                     : undefined
                 }
               >
