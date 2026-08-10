@@ -12,6 +12,7 @@ import {
   RANGE_LABEL,
   parseNum,
   fmtNum,
+  PLATFORM_COLORS,
 } from "./dashboard-data";
 import { LiveData } from "./live-data";
 
@@ -21,22 +22,22 @@ const METRIC_DATA: Record<
   Record<string, { value: string; delta: string; iconKey: string; hex: string }>
 > = {
   Follow: {
-    TikTok: { value: "850.0K", delta: "+12.4%", iconKey: "tiktok", hex: "#00F2EA" },
-    YouTube: { value: "320.0K", delta: "+8.1%", iconKey: "youtube", hex: "#FF0000" },
-    Instagram: { value: "75.0K", delta: "+3.2%", iconKey: "instagram", hex: "#E1306C" },
-    WhatsApp: { value: "12.0K", delta: "+0.9%", iconKey: "whatsapp", hex: "#25D366" },
+    TikTok: { value: "850.0K", delta: "+12.4%", iconKey: "tiktok", hex: PLATFORM_COLORS["TikTok"] },
+    YouTube: { value: "320.0K", delta: "+8.1%", iconKey: "youtube", hex: PLATFORM_COLORS["YouTube"] },
+    Instagram: { value: "75.0K", delta: "+3.2%", iconKey: "instagram", hex: PLATFORM_COLORS["Instagram"] },
+    WhatsApp: { value: "12.0K", delta: "+0.9%", iconKey: "whatsapp", hex: PLATFORM_COLORS["WhatsApp"] },
   },
   Like: {
-    TikTok: { value: "3.2M", delta: "+15.2%", iconKey: "tiktok", hex: "#00F2EA" },
-    YouTube: { value: "1.1M", delta: "+9.7%", iconKey: "youtube", hex: "#FF0000" },
-    Instagram: { value: "480K", delta: "+4.1%", iconKey: "instagram", hex: "#E1306C" },
-    WhatsApp: { value: "72K", delta: "+1.5%", iconKey: "whatsapp", hex: "#25D366" },
+    TikTok: { value: "3.2M", delta: "+15.2%", iconKey: "tiktok", hex: PLATFORM_COLORS["TikTok"] },
+    YouTube: { value: "1.1M", delta: "+9.7%", iconKey: "youtube", hex: PLATFORM_COLORS["YouTube"] },
+    Instagram: { value: "480K", delta: "+4.1%", iconKey: "instagram", hex: PLATFORM_COLORS["Instagram"] },
+    WhatsApp: { value: "72K", delta: "+1.5%", iconKey: "whatsapp", hex: PLATFORM_COLORS["WhatsApp"] },
   },
   Comment: {
-    TikTok: { value: "420K", delta: "+18.9%", iconKey: "tiktok", hex: "#00F2EA" },
-    YouTube: { value: "180K", delta: "+11.3%", iconKey: "youtube", hex: "#FF0000" },
-    Instagram: { value: "95K", delta: "+5.6%", iconKey: "instagram", hex: "#E1306C" },
-    WhatsApp: { value: "18K", delta: "+2.1%", iconKey: "whatsapp", hex: "#25D366" },
+    TikTok: { value: "420K", delta: "+18.9%", iconKey: "tiktok", hex: PLATFORM_COLORS["TikTok"] },
+    YouTube: { value: "180K", delta: "+11.3%", iconKey: "youtube", hex: PLATFORM_COLORS["YouTube"] },
+    Instagram: { value: "95K", delta: "+5.6%", iconKey: "instagram", hex: PLATFORM_COLORS["Instagram"] },
+    WhatsApp: { value: "18K", delta: "+2.1%", iconKey: "whatsapp", hex: PLATFORM_COLORS["WhatsApp"] },
   },
 };
 

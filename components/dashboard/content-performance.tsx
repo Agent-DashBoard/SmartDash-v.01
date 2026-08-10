@@ -76,7 +76,6 @@ export function ContentPerformanceChart({
     });
   })();
   const hasRealData = realDataWithZeroCols !== null && realDataWithZeroCols.length > 0;
-  const useAggregated = false; // Disabled: pakai per-platform series
 
   // Data final: kalau live sudah ada (dari SSR atau client fetch selesai),
   // HARUS pakai data real. Mock HANYA kalau live undefined (no akun terintegrasi).

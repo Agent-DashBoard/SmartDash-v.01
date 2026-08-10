@@ -44,12 +44,21 @@ export const RANGE_LABEL: Record<DayRange, string> = {
 };
 
 // Warna resmi tiap platform (legend chart + aksen badge)
-export const CONTENT_PLATFORM_COLORS: Record<string, string> = {
+// ============================================================================
+// WARNA PLATFORM — SATU SUMBER KEBENARAN (single source of truth)
+// Dipakai oleh: content-performance (bar), engagement-metrics (badge/icon),
+// profile-card (PROFILE_META.hex), stat-card (METRIC_DATA.hex).
+// Kalau mau ganti warna brand, cukup ubah di sini — semua halaman ikut.
+// ============================================================================
+export const PLATFORM_COLORS: Record<string, string> = {
   TikTok: "#00F2EA",
   YouTube: "#FF0000",
   Instagram: "#E1306C",
   WhatsApp: "#25D366",
 };
+
+// Alias lama — tetap diekspor agar kode yang sudah ada tidak perlu diubah
+export const CONTENT_PLATFORM_COLORS: Record<string, string> = PLATFORM_COLORS;
 
 // Parse "850.0K" / "3.2M" → angka
 export function parseNum(v: string): number {

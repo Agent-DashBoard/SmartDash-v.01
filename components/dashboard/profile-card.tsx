@@ -5,7 +5,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { DayRange, RANGE_FACTOR, parseNum, fmtNum } from "./dashboard-data";
+import { DayRange, RANGE_FACTOR, parseNum, fmtNum, PLATFORM_COLORS } from "./dashboard-data";
 import { LiveData } from "./live-data";
 
 const MINI_STATS = [
@@ -29,7 +29,7 @@ export const PROFILE_META: Record<
     handle: "@bangbay_tiktok",
     bio: "TikTok Content Creator",
     iconKey: "tiktok",
-    hex: "#00F2EA",
+    hex: PLATFORM_COLORS["TikTok"],
     stats: [
       { label: "Followers", value: "850K" },
       { label: "Following", value: "1.2K" },
@@ -40,7 +40,7 @@ export const PROFILE_META: Record<
     handle: "@bangbay_youtube",
     bio: "YouTube Content Creator",
     iconKey: "youtube",
-    hex: "#FF0000",
+    hex: PLATFORM_COLORS["YouTube"],
     stats: [
       { label: "Subscribers", value: "320K" },
       { label: "Videos", value: "45" },
@@ -51,7 +51,7 @@ export const PROFILE_META: Record<
     handle: "@bangbay_ig",
     bio: "Instagram Creator",
     iconKey: "instagram",
-    hex: "#E1306C",
+    hex: PLATFORM_COLORS["Instagram"],
     stats: [
       { label: "Followers", value: "75K" },
       { label: "Following", value: "890" },
@@ -62,7 +62,7 @@ export const PROFILE_META: Record<
     handle: "@bangbay_wa",
     bio: "WhatsApp Channel",
     iconKey: "whatsapp",
-    hex: "#25D366",
+    hex: PLATFORM_COLORS["WhatsApp"],
     stats: [
       { label: "Followers", value: "12K" },
       { label: "Channels", value: "3" },

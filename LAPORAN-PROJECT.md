@@ -1934,3 +1934,33 @@ Dashboard sekarang **SESUAI KEAINGINAN BANGBANG**:
 - Pilih YouTube → filter detail ke YouTube saja
 - **Bukan** loading lalu ganti ke TikTok otomatis.
 
+---
+
+### 54. 🎨 UPDATE 54 — Minggu, 10 Agustus 2026 · 16:55 SEAST — Warna Ikon & Bar Konsisten (Single Source of Truth)
+
+BangBay: **"tolong rubah warna bar nya dan sama kan seperti warna icon sosmed"** (screenshot Content Performance — bar TikTok cyan, legend TikTok cyan + YouTube merah).
+
+#### 🔍 Temuan audit
+- Warna bar chart **sudah** pakai warna icon: TikTok `#00F2EA` (cyan) · YouTube `#FF0000` (merah) · Instagram `#E1306C` · WhatsApp `#25D366`.
+- Bar YouTube **tidak muncul** di screenshot bukan karena warna, tapi karena **akun YouTube Zernio = 0 video** (belum ada konten).
+- TAPI warna platform **hardcode di 3 file terpisah** (`dashboard-data.ts`, `profile-card.tsx` PROFILE_META, `stat-card.tsx` METRIC_DATA) → risiko gak konsisten kalau ganti brand color.
+
+#### 🛠️ FIXED — single source of truth
+| File | Perubahan |
+|---|---|
+| **`dashboard-data.ts`** | Tambah `PLATFORM_COLORS` (sumber utama). `CONTENT_PLATFORM_COLORS` jadi alias → kode lama tetap jalan. |
+| **`profile-card.tsx`** | `PROFILE_META[*].hex` → referensi `PLATFORM_COLORS[...]` (4 platform). |
+| **`stat-card.tsx`** | `METRIC_DATA[*].hex` → referensi `PLATFORM_COLORS[...]` (12 entry: 3 metrik × 4 platform). |
+| **`content-performance.tsx`** | Hapus dead code `useAggregated` (unused var — warning lint). |
+
+Sekarang ganti warna brand = edit **1 file** (`dashboard-data.ts`) → semua ikon, badge, bar, legend di semua halaman ikut.
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0, 38 pages |
+| HTML `/` | ✅ `#00F2EA` + `#FF0000` render |
+| HTML `/platform/performance` | ✅ 5× Content Performance, TikTok + YouTube legend, #00F2EA + #FF0000 |
+| Referensi `PLATFORM_COLORS` | ✅ 5 file dashboard pakai satu sumber |
+
