@@ -20,13 +20,28 @@ function shortDate(iso: string): string {
   return `${dd}/${mm}`;
 }
 
-// Bar Content Performance dari posts ASLI: 8 bucket waktu antara post pertama & terakhir.
-// Null kalau gak ada posts (komponen pakai mock).
+// Bar Content Performance dari posts ASLI: 8 bucket waktu dalam RANGE DAYS terakhir
+// (bukan span min→max semua posts — itu bikin x-axis melebar setahun kalau ada
+// post lama + baru, lihat bug "bar YouTube gak muncul").
+// Null kalau gak ada posts dalam range.
 export function weeklyPerformance(
-  posts: LivePost[]
+  posts: LivePost[],
+  rangeDays?: number
 ): Array<Record<string, number | string>> | null {
   if (!posts.length) return null;
-  const sorted = [...posts].sort(
+
+  // Filter posts dalam range (default: semua kalau rangeDays gak dikasih)
+  let list = posts;
+  if (rangeDays && rangeDays > 0) {
+    const cutoff = Date.now() - rangeDays * 86_400_000;
+    list = posts.filter((p) => {
+      const t = new Date(p.createdTime).getTime();
+      return !isNaN(t) && t >= cutoff;
+    });
+  }
+  if (!list.length) return null;
+
+  const sorted = [...list].sort(
     (a, b) => new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime()
   );
   const min = new Date(sorted[0].createdTime).getTime();
@@ -73,13 +88,22 @@ export function aggregateTotal(
 // Null kalau gak ada posts untuk platform tsb.
 export function engagementSeries(
   posts: LivePost[],
-  platform?: string
+  platform?: string,
+  rangeDays?: number
 ): Array<{ label: string; likes: number; comments: number }> | null {
-  const list = platform
-    ? posts.filter((p) => platformLabel(p.platform) === platform)
-    : posts;
-  if (!list.length) return null;
-  return [...list]
+  // Filter posts dalam range days (30 hari terakhir dsb) — biar chart konsisten
+  // dengan filter "Last 7 days / Last 30 days" (bukan semua posts sejak dulu).
+  let list = posts;
+  if (rangeDays && rangeDays > 0) {
+    const cutoff = Date.now() - rangeDays * 86_400_000;
+    list = posts.filter((p) => {
+      const t = new Date(p.createdTime).getTime();
+      return !isNaN(t) && t >= cutoff;
+    });
+  }
+  const filtered = platform ? list.filter((p) => platformLabel(p.platform) === platform) : list;
+  if (!filtered.length) return null;
+  return [...filtered]
     .sort((a, b) => new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime())
     .map((p) => ({
       label: shortDate(p.createdTime),

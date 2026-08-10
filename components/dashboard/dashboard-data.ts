@@ -22,6 +22,15 @@ export const RANGE_WINDOW: Record<DayRange, number> = {
   "Last 30 days": 12, // semua (12 bulan / 8 minggu)
 };
 
+// Jumlah HARI yang di-filter untuk data asli (bukan mock).
+// Dipakai chart Content Performance & Engagement — "Last 30 days" = hanya posts
+// 30 hari terakhir (bukan semua posts sejak dulu kala).
+export const RANGE_DAYS: Record<DayRange, number> = {
+  Today: 1,
+  "Last 7 days": 7,
+  "Last 30 days": 30,
+};
+
 // Faktor skala aktivitas per range (buat kartu metric & stat profil — makin panjang range makin akumulasi)
 export const RANGE_FACTOR: Record<DayRange, number> = {
   Today: 0.15,

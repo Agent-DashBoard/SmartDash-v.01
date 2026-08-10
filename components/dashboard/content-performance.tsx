@@ -20,6 +20,7 @@ import { LiveData } from "./live-data";
 import {
   DayRange,
   RANGE_WINDOW,
+  RANGE_DAYS,
   RANGE_LABEL,
   CONTENT_PLATFORM_COLORS,
 } from "./dashboard-data";
@@ -55,9 +56,11 @@ export function ContentPerformanceChart({
   const hex = platform ? CONTENT_PLATFORM_COLORS[platform] ?? "#F97316" : "#F97316";
   const iconKey = platform ? PROFILE_META[platform]?.iconKey ?? "tiktok" : "total";
 
-  // Data ASLI dari posts Zernio (8 bucket waktu antara post pertama & terakhir);
-  // null kalau live undefined ATAU tidak ada post.
-  const realData = live ? weeklyPerformance(live.posts ?? []) : null;
+  // Data ASLI dari posts Zernio (8 bucket waktu dalam RANGE DAYS terakhir);
+  // null kalau live undefined ATAU tidak ada post dalam range.
+  const realData = live
+    ? weeklyPerformance(live.posts ?? [], RANGE_DAYS[days])
+    : null;
   // Untuk akun terintegrasi yang belum posting (kolom gak ada di realData),
   // tambahkan kolom = 0 di tiap bucket biar legend konsisten (transparan:
   // user lihat akun terhubung meski belum ada post).

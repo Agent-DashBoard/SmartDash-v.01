@@ -21,7 +21,7 @@ import { PlatformIcon } from "./platform-icon";
 import { PROFILE_META } from "./profile-card";
 import { engagementSeries } from "./chart-data";
 import { LiveData } from "./live-data";
-import { DayRange, RANGE_LABEL, CONTENT_PLATFORM_COLORS } from "./dashboard-data";
+import { DayRange, RANGE_DAYS, RANGE_LABEL, CONTENT_PLATFORM_COLORS } from "./dashboard-data";
 
 type EngPoint = { likes: number; comments: number };
 
@@ -112,7 +112,7 @@ export function EngagementMetricsChart({
   // FIXED: realData hanya berisi kalau memang ada posts (bukan initial kosong)
   const realData =
     live && !live.loading && live.posts?.length > 0
-      ? engagementSeries(live.posts, platform || undefined)
+      ? engagementSeries(live.posts, platform || undefined, RANGE_DAYS[days])
       : null;
   const realList = realData?.length ? realData : null;
 
