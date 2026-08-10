@@ -58,8 +58,23 @@ export function ContentPerformanceChart({
   // Data ASLI dari posts Zernio (8 bucket waktu antara post pertama & terakhir);
   // fallback ke mock kalau belum ada posts.
   const realData = live ? weeklyPerformance(live.posts ?? []) : null;
+
+  // Mode SEMUA (platform kosong): aggregate semua platform → 1 seri "total",
+  // supaya konsisten dgn judul "Total Semua Sosmed" (bukan bar per platform
+  // yang kalo cuma 1 platform berdata jadi keliatan "ke TikTok").
+  const aggregated = realData
+    ? realData.map((row) => {
+        const sum = Object.entries(row)
+          .filter(([k]) => k !== "label")
+          .reduce((acc, [, v]) => acc + (typeof v === "number" ? v : 0), 0);
+        return { label: row.label, total: sum };
+      })
+    : null;
+  const useAggregated = !platform && aggregated !== null;
+
   const data =
-    realData ?? CONTENT_PERF_DATA.slice(-RANGE_WINDOW[days]);
+    (useAggregated ? aggregated : realData) ??
+    CONTENT_PERF_DATA.slice(-RANGE_WINDOW[days]);
 
   // Platform yang aktif di chart: untuk data asli = kolom yang ada di data;
   // untuk mock = platform terintegrasi yang punya kolom di data contoh.
@@ -67,16 +82,21 @@ export function ContentPerformanceChart({
     data.length > 0
       ? Object.keys(data[0]).filter((k) => k !== "label")
       : [];
-  const active = realData
-    ? presentColumns
-    : connectedPlatforms.filter((p) =>
-        (CONTENT_PERF_DATA[0] as unknown as Record<string, number>)[p] !== undefined
-      );
+  const active = useAggregated
+    ? ["total"]
+    : realData
+      ? presentColumns
+      : connectedPlatforms.filter((p) =>
+          (CONTENT_PERF_DATA[0] as unknown as Record<string, number>)[p] !== undefined
+        );
 
   // Config chart — dipakai tooltip (dot + label + nilai) & label series
   const chartConfig: ChartConfig = {};
   for (const p of active) {
-    chartConfig[p] = { label: p, color: CONTENT_PLATFORM_COLORS[p] };
+    chartConfig[p] = {
+      label: p === "total" ? "Semua Sosmed" : p,
+      color: p === "total" ? "#F97316" : CONTENT_PLATFORM_COLORS[p],
+    };
   }
   if (platform) {
     chartConfig[platform] = { label: platform, color: hex };
@@ -171,7 +191,12 @@ export function ContentPerformanceChart({
               />
               <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
               {active.map((name) => (
-                <Bar key={name} dataKey={name} fill={CONTENT_PLATFORM_COLORS[name]} radius={8}>
+                <Bar
+                  key={name}
+                  dataKey={name}
+                  fill={chartConfig[name]?.color ?? CONTENT_PLATFORM_COLORS[name] ?? "#F97316"}
+                  radius={8}
+                >
                   {data.length <= 2 && (
                     <LabelList dataKey={name} position="top" offset={12} className="fill-[#E2E8F0]" fontSize={10} />
                   )}
