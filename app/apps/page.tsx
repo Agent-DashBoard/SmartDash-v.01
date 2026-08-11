@@ -165,7 +165,7 @@ dashboard creator konten all-in-one (TikTok · YouTube · Instagram · WhatsApp)
 - Jangan menjanjikan fitur yang belum tersedia.`;
 
 // 5 aplikasi mini di dalam Apps (ejaan benar: Calendar — referensi typo "Calender")
-const APPS_TABS = ["Agent", "Email", "Skill", "Notes", "Calendar"] as const;
+const APPS_TABS = ["Email", "Skill", "Notes", "Calendar"] as const;
 type AppTab = (typeof APPS_TABS)[number];
 
 // ===== Calendar (tab Calendar) — view + grid bulan =====
@@ -302,7 +302,7 @@ function useClock() {
 }
 
 export default function AppsPage() {
-  const [activeTab, setActiveTab] = useState<AppTab>("Agent");
+  const [activeTab, setActiveTab] = useState<AppTab>("Email");
   const [sessions, setSessions] = useState<Session[]>(INITIAL_SESSIONS);
   const [activeSession, setActiveSession] = useState(1);
   const [messages, setMessages] = useState<Msg[]>(INITIAL_MESSAGES);
@@ -674,152 +674,7 @@ export default function AppsPage() {
 
       {/* Konten per tab */}
       <div className="flex min-h-0 flex-1 flex-col gap-2">
-        {activeTab === "Agent" ? (
-          /* ===== Tab Agent — meniru Hermes Desktop Chat (04-hermes-desktop-chat.png) ===== */
-          <section className="flex min-h-0 flex-1 overflow-hidden rounded-xl border border-[#2E3750] bg-[#1C222B]">
-            {/* Kolom kiri: daftar sesi */}
-            <aside className="flex w-56 shrink-0 flex-col border-r border-[#2E3750] bg-[#0E1116]">
-              <div className="border-b border-[#2E3750] p-3">
-                <button
-                  type="button"
-                  onClick={handleNewSession}
-                  className="w-full rounded-lg bg-[#F97316] px-3 py-2 text-[13px] font-bold text-white transition-colors hover:brightness-110"
-                >
-                  + New Session
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-2">
-                {/* Sesi PINNED */}
-                <p className="px-2 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">
-                  Pinned
-                </p>
-                {pinnedSessions.length === 0 ? (
-                  <p className="px-2 pb-2 text-[11px] text-[#64748B]">Shift-click a chat to pin</p>
-                ) : (
-                  <div className="mb-2">
-                    {pinnedSessions.map((s) => (
-                      <SessionItem
-                        key={s.id}
-                        session={s}
-                        active={s.id === activeSession}
-                        menuOpen={menuFor === s.id}
-                        renaming={renamingId === s.id}
-                        renameValue={renameValue}
-                        onRenameValue={setRenameValue}
-                        onSelect={() => {
-                          setActiveSession(s.id);
-                          setMessages(s.id === 1 ? INITIAL_MESSAGES : []);
-                        }}
-                        onMenu={() => setMenuFor(menuFor === s.id ? null : s.id)}
-                        onRename={() => startRename(s)}
-                        onFinishRename={finishRename}
-                        onCancelRename={() => setRenamingId(null)}
-                        onPin={() => togglePin(s)}
-                        onDelete={() => handleDelete(s)}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {/* Sesi lain (tidak pinned) */}
-                <p className="px-2 pb-1 pt-1 text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">
-                  Sessions
-                </p>
-                {otherSessions.map((s) => (
-                  <SessionItem
-                    key={s.id}
-                    session={s}
-                    active={s.id === activeSession}
-                    menuOpen={menuFor === s.id}
-                    renaming={renamingId === s.id}
-                    renameValue={renameValue}
-                    onRenameValue={setRenameValue}
-                    onSelect={() => {
-                      setActiveSession(s.id);
-                      setMessages(s.id === 1 ? INITIAL_MESSAGES : []);
-                    }}
-                    onMenu={() => setMenuFor(menuFor === s.id ? null : s.id)}
-                    onRename={() => startRename(s)}
-                    onFinishRename={finishRename}
-                    onCancelRename={() => setRenamingId(null)}
-                    onPin={() => togglePin(s)}
-                    onDelete={() => handleDelete(s)}
-                  />
-                ))}
-              </div>
-            </aside>
-
-            {/* Kolom kanan: area chat */}
-            <div className="flex min-w-0 flex-1 flex-col">
-              {/* Daftar pesan */}
-              <div className="flex-1 space-y-3 overflow-y-auto p-4">
-                {messages.length === 0 ? (
-                  <p className="text-center text-[13px] text-[#64748B]">
-                    Sesi baru — tulis pesan untuk mulai ngobrol dengan Agent.
-                  </p>
-                ) : (
-                  messages.map((m, i) => (
-                    <div
-                      key={i}
-                      className={`flex ${
-                        m.role === "user" ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`max-w-[80%] whitespace-pre-wrap rounded-lg px-3.5 py-2 text-[13px] leading-relaxed ${
-                          m.role === "user"
-                            ? "bg-[#2A3347] text-[#E2E8F0]"
-                            : m.role === "error"
-                              ? "border border-[#EF4444]/40 bg-[#EF4444]/10 text-[#FCA5A5]"
-                              : "bg-transparent text-[#E2E8F0]"
-                        }`}
-                      >
-                        {m.role === "agent" ? (
-                          <MarkdownRenderer text={m.text} />
-                        ) : (
-                          m.text
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-                {/* Indikator: Hermes lagi mikir… */}
-                {loading && (
-                  <div className="flex justify-start">
-                    <div className="flex items-center gap-2 rounded-lg bg-[#1C222B] px-3.5 py-2 text-[13px] text-[#94A3B8]">
-                      <span className="flex gap-1">
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#F97316] [animation-delay:0ms]" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#F97316] [animation-delay:150ms]" />
-                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#F97316] [animation-delay:300ms]" />
-                      </span>
-                      SmartDash lagi mikir…
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Input box */}
-              <form
-                onSubmit={handleSubmit}
-                className="flex shrink-0 items-center gap-2 border-t border-[#2E3750] p-3"
-              >
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Tulis pesan ke Agent…"
-                  className="h-10 min-w-0 flex-1 rounded-lg border border-[#2E3750] bg-[#0E1116] px-3 text-[13px] text-[#E2E8F0] placeholder:text-[#94A3B8] focus:border-[#F97316] focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  className="h-10 shrink-0 rounded-lg bg-[#F97316] px-4 text-[13px] font-bold text-white transition-colors hover:brightness-110"
-                >
-                  Kirim
-                </button>
-              </form>
-            </div>
-          </section>
-        ) : activeTab === "Email" ? (
+        {activeTab === "Email" ? (
           /* ===== Tab Email — klien email (referensi 03-email-client.jpg / screenshot BangBay) ===== */
           <section className="flex min-h-0 flex-1 overflow-hidden rounded-xl border border-[#2E3750] bg-[#1C222B]">
             {/* Sidebar kiri email */}
