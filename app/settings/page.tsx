@@ -43,7 +43,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-semibold text-white/60">{label}</span>
+      <span className="mb-1 block text-[12px] font-semibold text-white/60">{label}</span>
       <input
         type={type}
         placeholder={placeholder}
@@ -105,7 +105,7 @@ export default function SettingsPage() {
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
-              className={`cursor-pointer whitespace-nowrap rounded-[4px] border px-3.5 py-1.5 text-[12px] font-bold transition-colors ${
+              className={`cursor-pointer whitespace-nowrap rounded-lg border px-3.5 py-1.5 text-[12px] font-bold transition-colors ${
                 tab === t.key
                   ? "border-transparent bg-[#232A3D] text-white"
                   : "border-[#2E3750] bg-transparent text-white/70 hover:bg-[#232A3D]"
