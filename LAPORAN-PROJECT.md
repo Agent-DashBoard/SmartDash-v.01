@@ -2117,3 +2117,29 @@ BangBay kirim screenshot final + **"seperti ini moka liat garis pemisah nya seja
 | Render `/inbox` | ✅ 200 — Chat, Semua, Belum Dibaca, Nama Akun tampil |
 | Garis sejajar | ✅ `h-[52px]` terpasang di header kiri & kanan (2x) |
 
+---
+
+### 61. 📥 UPDATE 61 — Selasa, 11 Agustus 2026 · 13:10 SEAST — Inbox: Kotak Full Height Sampai Bawah
+
+BangBay: **"ukuran kotak nya lebih baik langsung di buat full saja, maksudnya panjangkan ke bawah saja agar full ke 2 kotak nya"** (kotak daftar chat + kotak percakapan).
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Root jadi flex-col** | `flex min-h-full flex-col` — halaman isi penuh tinggi `main` (AppShell `flex-1 overflow-y-auto`) |
+| **Wrapper flex-1** | wrapper dalam `flex-1` → mengambil sisa tinggi di bawah header |
+| **Grid → flex row** | `flex min-h-0 flex-1 flex-col gap-2 lg:flex-row` — 2 kotak **stretch penuh** sampai bawah (bukan grid auto-height) |
+| **Panel kiri** | `lg:w-[320px] lg:shrink-0`, `lg:min-h-0` — tetap lebar 320px, tinggi full |
+| **Panel kanan** | `lg:flex-1 lg:min-w-0` — mengambil sisa lebar, tinggi full |
+| **Mobile aman** | kedua panel `min-h-[320px]` di layar kecil (stacked), `lg:min-h-0` di desktop |
+
+Hasil: kotak "Belum ada percakapan" (kiri) & "Pilih percakapan..." (kanan) sekarang **full sampai bawah viewport**, tinggi sama persis.
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render `/inbox` | ✅ 200 — semua elemen tampil, `lg:flex-row` + `flex-1` terpasang |
+| cua-driver | ⚠️ error eksternal (session ended) — verifikasi visual manual di browser |
+

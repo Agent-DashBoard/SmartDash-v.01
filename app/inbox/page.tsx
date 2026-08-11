@@ -90,8 +90,8 @@ export default function InboxPage() {
   }
 
   return (
-    <div className="min-h-full bg-[#0E1116] px-3 py-2 [font-family:Inter,var(--font-geist-sans),system-ui,sans-serif]">
-      <div className="flex w-full flex-col gap-3">
+    <div className="flex min-h-full flex-col bg-[#0E1116] px-3 py-2 [font-family:Inter,var(--font-geist-sans),system-ui,sans-serif]">
+      <div className="flex w-full flex-1 flex-col gap-3">
         {/* ===== HEADER: judul + breadcrumb + tombol Chat (kiri) · jam + dot (kanan) ===== */}
         <header className="flex items-start justify-between gap-2">
           <div>
@@ -182,10 +182,10 @@ export default function InboxPage() {
           </div>
         </header>
 
-        {/* ===== 2 KOLOM SEJAJAR: kiri daftar chat · kanan percakapan ===== */}
-        <div className="grid grid-cols-1 items-stretch gap-2 lg:grid-cols-[320px_1fr]">
+        {/* ===== 2 KOLOM SEJAJAR: kiri daftar chat · kanan percakapan — FULL HEIGHT ===== */}
+        <div className="flex min-h-0 flex-1 flex-col gap-2 lg:flex-row">
           {/* ---- PANEL KIRI: filter + daftar chat ---- */}
-          <section className="flex flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B]">
+          <section className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:min-h-0 lg:w-[320px] lg:shrink-0">
             {/* Header kiri — h-[52px] SAMA dengan header kanan → garis sejajar */}
             <div className="flex h-[52px] shrink-0 items-center gap-2 border-b border-[#2E3750] px-3">
               {(
@@ -260,8 +260,8 @@ export default function InboxPage() {
             </div>
           </section>
 
-          {/* ---- PANEL KANAN: Nama Akun + area percakapan ---- */}
-          <section className="flex flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B]">
+          {/* ---- PANEL KANAN: Nama Akun + area percakapan — full height (flex-1) ---- */}
+          <section className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:min-h-0 lg:min-w-0 lg:flex-1">
             {/* Header kanan — h-[52px] SAMA dengan header kiri → garis sejajar */}
             <div className="flex h-[52px] shrink-0 items-center gap-3 border-b border-[#2E3750] px-3">
               {active ? (
