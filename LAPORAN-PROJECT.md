@@ -2386,3 +2386,28 @@ BangBay: **"moka jarak nya terlalu jauh antara PINNED dan SESSION, itu nanti tuj
 | `/api/hermes/chat` | persisten — `handleSubmit` sudah siap POST ke endpoint yang sama |
 | Interaksi | buka /inbox → pilih Agent → lihat New Session, PINNED, SESSIONS, chat view + input |
 
+---
+
+### 71. 📒 UPDATE 71 — Selasa, 11 Agustus 2026 · 17:50 SEAST — Inbox: Fix `<button> cannot be a descendant of <button>`
+
+BangBay: **"In HTML, `<button> cannot be a descendant of <button>`"** — ini hydrate error di chat item.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **`ChatItem` wrapper** | `<button>` ganti menjadi `<div role="button">` (dengan `onKeyDown` handler Enter/Space) |
+| **`ChatItem` ikon pin** | Hapus ikon pin (khusus Agent). Pin hanya di mode Agent (AgentSessionsView). |
+| **Hapus `onTogglePin`** | Tidak perlu di ChatItem (bukan sosmed), pin ada di `AgentSessionsView` saja. |
+| **`AgentSessionsView`** | Panel chat lengkap — sidebar (New Session / PINNED / SESSIONS) + kanan (messages + input + loading) |
+| **`POST /api/hermes/chat`** | Kirim history + sessionId, handle `data.reply` / `data.sessionId` |
+| **Loading dot** | "SmartDash lagi mikir..." di bawah pesan terakhir user |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error (11 warning saja di `apps/page.tsx` — bukan kita) |
+| `npm run build` | ✅ exit 0 |
+| Render `/inbox` | ✅ HTTP 200 |
+
+Perbaikan meminimalisasi `<button>` nested dan memperkuat layout Agent session yang sudah ada sebelumnya.
+
