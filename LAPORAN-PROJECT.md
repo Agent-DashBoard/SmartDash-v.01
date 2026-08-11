@@ -2246,3 +2246,22 @@ BangBay: **"di dropdown itu bukan untuk chat baru tapi memilih akun mana yg akan
 
 > ℹ️ Perubahan diminta eksplisit BangBay → valid meski Inbox LOCKED.
 
+---
+
+### 66. 📥 UPDATE 66 — Selasa, 11 Agustus 2026 · 14:15 SEAST — Inbox: Pill Filter Dirapikan (Ukuran Kecil + Nowrap)
+
+BangBay kirim screenshot pill row (Semua / Belum Dibaca / New Chat) + **"tidak rapih dan terlalu besar, tolong di buat lebih rapih"** — "Belum Dibaca" melorot jadi 2 baris.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **whitespace-nowrap** | Semua pill (Semua, Belum Dibaca, New Chat) `whitespace-nowrap` — "Belum Dibaca" tidak pecah 2 baris lagi |
+| **Ukuran lebih kecil** | Text `12px → 11px`, padding `px-4 py-1.5 → px-3 py-1`, ikon `+` `h-3 → h-2.5` |
+| **Gap lebih rapat** | Container header `gap-2 → gap-1.5` |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+

@@ -245,7 +245,7 @@ export default function InboxPage() {
           {/* ---- PANEL KIRI: filter + daftar chat ---- */}
           <section className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:min-h-0 lg:w-[320px] lg:shrink-0">
             {/* Header kiri — h-[52px] SAMA dengan header kanan → garis sejajar */}
-            <div className="flex h-[52px] shrink-0 items-center gap-2 border-b border-[#2E3750] px-3">
+            <div className="flex h-[52px] shrink-0 items-center gap-1.5 border-b border-[#2E3750] px-3">
               {(
                 [
                   { key: "all", label: "Semua" },
@@ -256,7 +256,7 @@ export default function InboxPage() {
                   key={f.key}
                   type="button"
                   onClick={() => setFilter(f.key)}
-                  className={`cursor-pointer rounded-full border px-4 py-1.5 text-[12px] font-bold transition-colors ${
+                  className={`cursor-pointer whitespace-nowrap rounded-full border px-3 py-1 text-[11px] font-bold transition-colors ${
                     filter === f.key
                       ? "border-[#38BDF8]/50 bg-[#38BDF8]/10 text-[#38BDF8]"
                       : "border-[#2E3750] bg-transparent text-white/70 hover:bg-[#232A3D]"
@@ -271,10 +271,10 @@ export default function InboxPage() {
                 <button
                   type="button"
                   onClick={() => setNewChatOpen((v) => !v)}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#38BDF8]/50 bg-[#38BDF8]/10 px-3 py-1.5 text-[12px] font-bold text-[#38BDF8] transition-colors hover:bg-[#38BDF8]/20"
+                  className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border border-[#38BDF8]/50 bg-[#38BDF8]/10 px-2.5 py-1 text-[11px] font-bold text-[#38BDF8] transition-colors hover:bg-[#38BDF8]/20"
                 >
                   <svg
-                    className="h-3 w-3"
+                    className="h-2.5 w-2.5"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
