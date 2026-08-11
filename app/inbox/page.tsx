@@ -1,7 +1,9 @@
 // app/inbox/page.tsx — Inbox: layout persis referensi BangBay.
+// 🔒 LOCKED (11-08-2026, BangBay): desain FINAL — jangan ubah layout/garis/tombol tanpa persetujuan eksplisit BangBay.
 // - Header: judul Inbox + breadcrumb, tombol Chat (dropdown) di bawah breadcrumb.
-// - 2 kolom sejajar: kiri = daftar chat (filter pills + list), kanan = panel percakapan (Nama Akun).
+// - 2 kolom sejajar full-height: kiri = daftar chat (filter pills + list), kanan = panel percakapan (Nama Akun).
 // - Garis pemisah header kiri & kanan SAMA TINGGI (h-[52px] keduanya) → sejajar sempurna.
+// - Kotak full height (flex-1 stretch) sampai bawah viewport.
 "use client";
 
 import { useState, useEffect } from "react";

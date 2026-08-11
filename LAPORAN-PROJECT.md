@@ -2143,3 +2143,32 @@ Hasil: kotak "Belum ada percakapan" (kiri) & "Pilih percakapan..." (kanan) sekar
 | Render `/inbox` | ✅ 200 — semua elemen tampil, `lg:flex-row` + `flex-1` terpasang |
 | cua-driver | ⚠️ error eksternal (session ended) — verifikasi visual manual di browser |
 
+---
+
+### 62. 🔒 UPDATE 62 — Selasa, 11 Agustus 2026 · 13:15 SEAST — Inbox LOCKED (Desain Final)
+
+BangBay: **"ok mantap moka dan tolong dikunci agar tidak berubah lagi"** → desain Inbox dianggap final & dikunci.
+
+#### 🔒 Status LOCKED
+| Item | Detail |
+|---|---|
+| **File** | `app/inbox/page.tsx` |
+| **Tanggal kunci** | 11-08-2026 (Update 62) |
+| **Aturan** | Layout/garis/tombol **TIDAK boleh diubah** tanpa persetujuan eksplisit BangBay |
+| **Penanda** | Komentar `🔒 LOCKED` di header file + entri ini |
+
+#### ✅ Desain final yang dikunci
+1. Header: Inbox + breadcrumb, tombol Chat (dropdown TikTok/YouTube) di bawah breadcrumb
+2. 2 kolom sejajar full-height: kiri daftar chat (pills + list), kanan Nama Akun + percakapan
+3. Garis pemisah header kiri & kanan `h-[52px]` → sejajar sempurna
+4. Kotak full height sampai bawah viewport (flex-1 stretch)
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Commit | `ed291c2` (Update 61) + lock marker di header file |
+
+> ⚠️ Yang BOLEH berubah di masa depan tanpa unlock: hanya **data** (isi pesan, nama akun) jika API Zernio pesan aktif — layout visual tetap terkunci.
+
