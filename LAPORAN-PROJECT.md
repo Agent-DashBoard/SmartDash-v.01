@@ -2048,3 +2048,24 @@ BangBay kirim screenshot referensi inbox + **"isi dari inbox nya seperti ini mok
 | `npm run build` | ✅ exit 0 |
 | Render `/inbox` | ✅ Chat, Semua, Belum Dibaca, Nama Akun, empty state semua tampil |
 
+---
+
+### 58. 📥 UPDATE 58 — Selasa, 11 Agustus 2026 · 12:35 SEAST — Inbox: Dropdown Hanya Platform Terhubung + Garis Sejajar
+
+BangBay kirim screenshot + **"aku mau di dalam dropdown itu yg sudah terhubung atau sudah ada di integrations dan garis nya sejajarkan"**.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Dropdown filter terhubung** | `.filter((key) => PLATFORM_META[key].connected)` — dropdown Chat cuma tampilkan **TikTok & YouTube** (2 akun Zernio), Instagram/WhatsApp dihapus dari dropdown |
+| **Garis sejajar** | border-b antar item dropdown (kecuali item terakhir) — garis pemisah konsisten selebar item, rapi |
+| **Nama akun asli** | `startChat` pakai nama asli Zernio: TikTok → "BangBay \| Audio & Cuan" (@bangbayaudio), YouTube → "Bang Panjul" (@smart-dashboard) — bukan "Chat TikTok" generic |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Source dropdown | ✅ filter `connected` + border-b sejajar |
+| Render `/inbox` | ✅ 200 (dropdown default tertutup — konten muncul setelah klik, normal client-side) |
+

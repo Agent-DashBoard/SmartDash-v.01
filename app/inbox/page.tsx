@@ -62,13 +62,21 @@ export default function InboxPage() {
 
   function startChat(platform: ChatPlatform) {
     const meta = PLATFORM_META[platform];
-    // Belum terhubung → tetap buka percakapan baru (data contoh), biar user lihat feedback
+    // Nama akun asli dari Integrations (Zernio) — hanya platform terhubung yang muncul di dropdown
+    const accountName =
+      platform === "tiktok"
+        ? "BangBay | Audio & Cuan"
+        : platform === "youtube"
+          ? "Bang Panjul"
+          : meta.label;
+    const accountHandle =
+      platform === "tiktok" ? "@bangbayaudio" : platform === "youtube" ? "@smart-dashboard" : "";
     const nextId = Math.max(0, ...chats.map((c) => c.id)) + 1;
     const chat: Chat = {
       id: nextId,
       platform,
-      name: meta.connected ? `Chat ${meta.label}` : `${meta.label} (belum terhubung)`,
-      handle: meta.connected ? "@akun_terhubung" : "",
+      name: accountName,
+      handle: accountHandle,
       preview: "Percakapan baru — belum ada pesan",
       time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
       unread: false,
@@ -136,33 +144,35 @@ export default function InboxPage() {
                 <p className="border-b border-[#2E3750] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
                   Mulai chat baru
                 </p>
-                {(Object.keys(PLATFORM_META) as ChatPlatform[]).map((key) => {
-                  const meta = PLATFORM_META[key];
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => startChat(key)}
-                      className="flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[#232A3D]"
-                    >
-                      <span
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px]"
-                        style={{ backgroundColor: `${meta.color}1A` }}
+                {/* Hanya platform yang sudah terhubung di Integrations (Zernio) */}
+                {(Object.keys(PLATFORM_META) as ChatPlatform[])
+                  .filter((key) => PLATFORM_META[key].connected)
+                  .map((key, idx, arr) => {
+                    const meta = PLATFORM_META[key];
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => startChat(key)}
+                        className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[#232A3D] ${
+                          idx < arr.length - 1 ? "border-b border-[#2E3750]" : ""
+                        }`}
                       >
-                        {meta.icon}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[13px] font-bold text-white">{meta.label}</span>
                         <span
-                          className="block text-[10px]"
-                          style={{ color: meta.connected ? meta.color : "#64748B" }}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px]"
+                          style={{ backgroundColor: `${meta.color}1A` }}
                         >
-                          {meta.connected ? "Terhubung" : "Belum terhubung"}
+                          {meta.icon}
                         </span>
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-[13px] font-bold text-white">{meta.label}</span>
+                          <span className="block text-[10px]" style={{ color: meta.color }}>
+                            Terhubung
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
               </div>
             </>
           )}
