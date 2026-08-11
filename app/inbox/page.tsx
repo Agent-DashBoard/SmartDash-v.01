@@ -22,6 +22,7 @@ type Chat = {
   preview: string;
   time: string;
   unread: boolean;
+  pinned?: boolean; // ← jika true, muncul di paling atas (di atas SESSIONS)
 };
 
 const PLATFORM_META: Record<
@@ -69,7 +70,29 @@ function useClock() {
 }
 
 export default function InboxPage() {
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<Chat[]>([
+    // Dummy agar UI nyampe — biar gak buta kosong
+    {
+      id: 1,
+      platform: "tiktok",
+      name: "BangBay | Audio & Cuan",
+      handle: "@bangbayaudio",
+      preview: "Nah ini dia contoh chat yang dipin...",
+      time: "22:45",
+      unread: true,
+      pinned: true,
+    },
+    {
+      id: 2,
+      platform: "youtube",
+      name: "Bang Panjul",
+      handle: "@smart-dashboard",
+      preview: "Bagus Bang, lanjutkan 👍",
+      time: "22:30",
+      unread: false,
+      pinned: false,
+    },
+  ]);
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   // Akun yang dipilih untuk DIBACA chat-nya (TikTok/YouTube/Agent) — bukan untuk chat baru
@@ -82,10 +105,15 @@ export default function InboxPage() {
     ? now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
     : "--:--";
 
-  // Filter: akun yang dipilih dulu, baru Semua/Belum Dibaca
+  // Filter: akun yang dipilih dulu, baru Semua/Belum Dibaca.
+  // Urutan: pin dulu (paling atas), baru remaining — mirip GUI Hermes.
   const accountChats = chats.filter((c) => c.platform === account);
-  const filtered =
+  const withFilter =
     filter === "unread" ? accountChats.filter((c) => c.unread) : accountChats;
+  const pinned = withFilter.filter((c) => c.pinned);
+  const regular = withFilter.filter((c) => !c.pinned);
+  const ordered = [...pinned, ...regular];
+  const filtered = ordered;
   const active = chats.find((c) => c.id === activeChatId) ?? null;
 
   function accountNameFor(platform: ChatPlatform) {
@@ -125,6 +153,12 @@ export default function InboxPage() {
   function openChat(id: number) {
     setActiveChatId(id);
     setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: false } : c)));
+  }
+
+  function togglePin(id: number) {
+    setChats((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c))
+    );
   }
 
   return (
@@ -390,9 +424,59 @@ export default function InboxPage() {
               </div>
             </div>
 
-            {/* Daftar chat — item dipisah border-t full-width (sejajar) */}
+            {/* Daftar chat — PINNED di atas (sejajar), SESSIONS di bawah. Gap kecil antar section. */}
             <div className="flex flex-1 flex-col overflow-y-auto">
-              {filtered.length === 0 ? (
+              {/* PINNED section */}
+              {pinned.length > 0 && (
+                <>
+                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                    PINNED
+                  </p>
+                  {pinned.map((c, idx) => (
+                    <ChatItem
+                      key={c.id}
+                      c={c}
+                      meta={PLATFORM_META[c.platform]}
+                      active={activeChatId === c.id}
+                      onOpen={() => openChat(c.id)}
+                      onTogglePin={() => togglePin(c.id)}
+                      showBorderTop={idx > 0}
+                    />
+                  ))}
+                  <div className="h-px bg-[#2E3750]" />
+                </>
+              )}
+
+              {/* SESSIONS section — header selalu muncul jika ada pinned atau regular */}
+              {(pinned.length > 0 || regular.length > 0) && (
+                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                  SESSIONS
+                </p>
+              )}
+              {regular.length === 0 ? (
+                <div className="px-3 py-8 text-center">
+                  <p className="text-[12px] leading-relaxed text-[#64748B]">
+                    Tidak ada percakapan lain.
+                    <br />
+                    Klik <span className="font-bold text-white/60">New Chat</span> untuk memulai.
+                  </p>
+                </div>
+              ) : (
+                regular.map((c, idx) => (
+                  <ChatItem
+                    key={c.id}
+                    c={c}
+                    meta={PLATFORM_META[c.platform]}
+                    active={activeChatId === c.id}
+                    onOpen={() => openChat(c.id)}
+                    onTogglePin={() => togglePin(c.id)}
+                    showBorderTop={idx > 0}
+                  />
+                ))
+              )}
+
+              {/* Empty state penuh bila tidak ada chat sama sekali */}
+              {filtered.length === 0 && pinned.length === 0 && regular.length === 0 && (
                 <div className="flex flex-1 items-center justify-center px-4 py-10 text-center">
                   <p className="text-[12px] leading-relaxed text-[#64748B]">
                     Belum ada percakapan untuk akun ini.
@@ -400,43 +484,6 @@ export default function InboxPage() {
                     Klik <span className="font-bold text-white/60">New Chat</span> untuk memulai.
                   </p>
                 </div>
-              ) : (
-                filtered.map((c, idx) => {
-                  const meta = PLATFORM_META[c.platform];
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => openChat(c.id)}
-                      className={`flex w-full cursor-pointer items-start gap-2.5 px-3 py-3 text-left transition-colors ${
-                        activeChatId === c.id ? "bg-[#232A3D]" : "hover:bg-[#232A3D]/60"
-                      } ${idx > 0 ? "border-t border-[#2E3750]" : ""}`}
-                    >
-                      <span
-                        className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
-                        style={{ backgroundColor: `${meta.color}1A` }}
-                      >
-                        <PlatformImg src={meta.img} alt={meta.label} />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center justify-between gap-2">
-                          <span className="truncate text-[13px] font-bold text-white">{c.name}</span>
-                          <span className="shrink-0 text-[10px] text-[#64748B]">{c.time}</span>
-                        </span>
-                        <span className="mt-0.5 flex items-center gap-1.5">
-                          <span
-                            className="rounded-full px-1.5 py-px text-[9px] font-bold"
-                            style={{ backgroundColor: `${meta.color}1A`, color: meta.color }}
-                          >
-                            {meta.label}
-                          </span>
-                          {c.unread && <span className="h-1.5 w-1.5 rounded-full bg-[#38BDF8]" />}
-                        </span>
-                        <span className="mt-1 block truncate text-[11px] text-white/50">{c.preview}</span>
-                      </span>
-                    </button>
-                  );
-                })
               )}
             </div>
           </section>
@@ -509,6 +556,82 @@ export default function InboxPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// ---- Komponen item chat (dipakai di PINNED & SESSIONS) ----
+function ChatItem({
+  c,
+  meta,
+  active,
+  onOpen,
+  onTogglePin,
+  showBorderTop,
+}: {
+  c: Chat;
+  meta: { label: string; img: string; color: string; connected: boolean };
+  active: boolean;
+  onOpen: () => void;
+  onTogglePin: () => void;
+  showBorderTop: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`group relative flex w-full cursor-pointer items-start gap-2.5 px-3 py-3 text-left transition-colors ${
+        active ? "bg-[#232A3D]" : "hover:bg-[#232A3D]/60"
+      } ${showBorderTop ? "border-t border-[#2E3750]" : ""}`}
+    >
+      <span
+        className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
+        style={{ backgroundColor: `${meta.color}1A` }}
+      >
+        <PlatformImg src={meta.img} alt={meta.label} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center justify-between gap-2">
+          <span className="truncate text-[13px] font-bold text-white">{c.name}</span>
+          <span className="shrink-0 text-[10px] text-[#64748B]">{c.time}</span>
+        </span>
+        <span className="mt-0.5 flex items-center gap-1.5">
+          <span
+            className="rounded-full px-1.5 py-px text-[9px] font-bold"
+            style={{ backgroundColor: `${meta.color}1A`, color: meta.color }}
+          >
+            {meta.label}
+          </span>
+          {c.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#38BDF8]" />}
+        </span>
+        <span className="mt-1 block truncate text-[11px] text-white/50">{c.preview}</span>
+      </span>
+
+      {/* Ikon pin — muncul saat hover / sudah dipin */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onTogglePin();
+        }}
+        className={`absolute top-1/2 -mt-2 right-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] opacity-0 transition-all group-hover:opacity-100 ${
+          c.pinned ? "opacity-100 text-[#38BDF8]" : "text-white/30 hover:bg-[#2E3750]"
+        }`}
+        title={c.pinned ? "Lepas pin" : "Pin"}
+      >
+        <svg
+          className="h-3 w-3"
+          viewBox="0 0 24 24"
+          fill={c.pinned ? "currentColor" : "none"}
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M12 17V3m0 0l-4 4m4-4 4 4" />
+        </svg>
+      </button>
+    </button>
   );
 }
 

@@ -2336,3 +2336,27 @@ BangBay kirim screenshot hasil + **"hasilnya kok gk sesuai dengan gambar referen
 | `npm run build` | ✅ exit 0 |
 | Render `/settings` | ✅ avatar Agent (via next/image 16 ref), Bio full-width setelah Last Name/Phone, Save outline |
 
+---
+
+### 70. 📥 UPDATE 70 — Selasa, 11 Agustus 2026 · 17:00 SEAST — Inbox: Fitur Pin (reorder ke atas) + Spacing Kecil
+
+BangBay: **"jaraknya terlalu jauh antara PINNED dan SESSION. itu nanti tujuan nya adalah: Jika ada chat yg di pinned maka dia akan pindah ke atas"**.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Field `pinned?** | Ditambah di tiap obyek `Chat` — jika `true`, muncul di bagian PINNED (paling atas) |
+| **Urut daftar** | `ordered = [...pinned, ...regular]` — **chat yang dipin otomatis naik ke atas** apa saja filternya. Ini maksud "pindah ke atas" |
+| **Section PINNED & SESSIONS** | 2 header `uppercase text-white/40` kecil (`text-[10px]`). Gap kecil (`py-1.5`), dipisah garis tipis `h-px bg-[#2E3750]` antar section |
+| **Ikon pin 📌** | SVG di kanan tiap item — **muncul on-hover** + tetap terang jika sudah dipin (warna biru `#38BDF8`). Klik toggle |
+| **ChatItem component** | Extracted — reusable buat PINNED & SESSIONS |
+| **Dummy chat** | 2 chat default (1 TikTok pinned, 1 YouTube biasa) biar UI gak kosong |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| Inbox `npm run lint` | ✅ 0 warning (hanya apps/page.tsx warning dari refactor Abbu — bukan kita) |
+| `npm run build` | ✅ exit 0 |
+| Render `/inbox` | ✅ PINNED + SESSIONS + New Chat + BangBay tampil |
+| Pin behavior | client-side: klik icon pin → chat naik turun antar section |
+
