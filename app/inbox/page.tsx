@@ -1,7 +1,8 @@
-// app/inbox/page.tsx — Inbox: pesan dari semua platform sosial terhubung.
-// Layout persis referensi BangBay: header + tombol Chat (dropdown platform) +
-// panel kiri (filter Semua/Belum Dibaca + daftar) + panel kanan (header Nama Akun + isi).
-// CATATAN: data pesan dari Zernio belum aktif → daftar mulai kosong (empty state).
+// app/inbox/page.tsx — Inbox: layout 3 zona PERSIS referensi BangBay.
+// Zona 1 (kiri atas, lebar): filter pills + daftar chat.
+// Zona 2 (kanan atas, sempit): tombol Chat → dropdown platform terhubung.
+// Zona 3 (bawah, full-width): header Nama Akun + area percakapan.
+// Semua garis pemisah konsisten #2E3750 & sejajar (grid).
 "use client";
 
 import { useState, useEffect } from "react";
@@ -44,11 +45,9 @@ function useClock() {
 }
 
 export default function InboxPage() {
-  // Daftar chat — mulai kosong persis referensi (empty state)
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  // Dropdown "Chat"
   const [chatOpen, setChatOpen] = useState(false);
 
   const now = useClock();
@@ -62,7 +61,7 @@ export default function InboxPage() {
 
   function startChat(platform: ChatPlatform) {
     const meta = PLATFORM_META[platform];
-    // Nama akun asli dari Integrations (Zernio) — hanya platform terhubung yang muncul di dropdown
+    // Nama akun asli dari Integrations (Zernio)
     const accountName =
       platform === "tiktok"
         ? "BangBay | Audio & Cuan"
@@ -108,82 +107,12 @@ export default function InboxPage() {
           </div>
         </header>
 
-        {/* Tombol Chat — dropdown platform */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setChatOpen((v) => !v)}
-            className="cursor-pointer rounded-[8px] border border-[#2E3750] bg-[#1C222B] px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-[#232A3D]"
-          >
-            <span className="flex items-center gap-2">
-              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-              Chat
-              <svg
-                className={`h-3 w-3 transition-transform ${chatOpen ? "rotate-180" : ""}`}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </span>
-          </button>
-
-          {/* Dropdown */}
-          {chatOpen && (
-            <>
-              {/* Overlay — klik di luar untuk tutup */}
-              <div className="fixed inset-0 z-10" onClick={() => setChatOpen(false)} />
-              <div className="absolute left-0 top-full z-20 mt-1 w-64 overflow-hidden rounded-[8px] border border-[#2E3750] bg-[#1C222B] shadow-xl">
-                <p className="border-b border-[#2E3750] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
-                  Mulai chat baru
-                </p>
-                {/* Hanya platform yang sudah terhubung di Integrations (Zernio) */}
-                {(Object.keys(PLATFORM_META) as ChatPlatform[])
-                  .filter((key) => PLATFORM_META[key].connected)
-                  .map((key, idx, arr) => {
-                    const meta = PLATFORM_META[key];
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => startChat(key)}
-                        className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[#232A3D] ${
-                          idx < arr.length - 1 ? "border-b border-[#2E3750]" : ""
-                        }`}
-                      >
-                        <span
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px]"
-                          style={{ backgroundColor: `${meta.color}1A` }}
-                        >
-                          {meta.icon}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-[13px] font-bold text-white">{meta.label}</span>
-                          <span className="block text-[10px]" style={{ color: meta.color }}>
-                            Terhubung
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Dua kolom: daftar kiri + baca kanan */}
-        <div className="grid min-h-[440px] grid-cols-1 overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:grid-cols-[300px_1fr]">
-          {/* Panel kiri — filter + daftar */}
-          <div className="flex flex-col border-b border-[#2E3750] lg:border-b-0 lg:border-r">
-            {/* Filter pills */}
-            <div className="flex gap-2 border-b border-[#2E3750] p-3">
+        {/* ===== GRID 3 ZONA (persis referensi) ===== */}
+        <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_230px]">
+          {/* ---- ZONA KIRI (lebar): filter + daftar chat ---- */}
+          <section className="flex flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B]">
+            {/* Filter pills — garis bawah konsisten */}
+            <div className="flex items-center gap-2 border-b border-[#2E3750] p-3">
               {(
                 [
                   { key: "all", label: "Semua" },
@@ -205,10 +134,10 @@ export default function InboxPage() {
               ))}
             </div>
 
-            {/* Daftar chat — empty state persis referensi */}
-            <div className="flex flex-1 flex-col overflow-y-auto p-2 lg:max-h-[540px]">
+            {/* Daftar chat — tiap item dipisah garis horizontal full-width (sejajar) */}
+            <div className="flex flex-1 flex-col overflow-y-auto">
               {filtered.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center px-4 py-10 text-center">
+                <div className="flex flex-1 items-center justify-center px-4 py-12 text-center">
                   <p className="text-[12px] leading-relaxed text-[#64748B]">
                     Belum ada percakapan.
                     <br />
@@ -216,18 +145,16 @@ export default function InboxPage() {
                   </p>
                 </div>
               ) : (
-                filtered.map((c) => {
+                filtered.map((c, idx) => {
                   const meta = PLATFORM_META[c.platform];
                   return (
                     <button
                       key={c.id}
                       type="button"
                       onClick={() => openChat(c.id)}
-                      className={`flex w-full cursor-pointer items-start gap-2.5 rounded-[8px] border p-2.5 text-left transition-colors ${
-                        activeChatId === c.id
-                          ? "border-[#38BDF8]/50 bg-[#232A3D]"
-                          : "border-transparent hover:bg-[#232A3D]/60"
-                      }`}
+                      className={`flex w-full cursor-pointer items-start gap-2.5 px-3 py-3 text-left transition-colors ${
+                        activeChatId === c.id ? "bg-[#232A3D]" : "hover:bg-[#232A3D]/60"
+                      } ${idx > 0 ? "border-t border-[#2E3750]" : ""}`}
                     >
                       <span
                         className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[16px]"
@@ -256,62 +183,130 @@ export default function InboxPage() {
                 })
               )}
             </div>
-          </div>
+          </section>
 
-          {/* Panel kanan — header Nama Akun + isi pesan */}
-          <div className="flex flex-col">
-            {/* Header bar */}
-            <div className="flex items-center gap-3 border-b border-[#2E3750] p-3">
-              {active ? (
+          {/* ---- ZONA KANAN (sempit): tombol Chat + dropdown ---- */}
+          <section className="flex flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] p-3">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setChatOpen((v) => !v)}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] border border-[#2E3750] bg-[#0E1116] px-4 py-2.5 text-[12px] font-bold text-white transition-colors hover:bg-[#232A3D]"
+              >
+                <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Chat
+                <svg
+                  className={`h-3 w-3 transition-transform ${chatOpen ? "rotate-180" : ""}`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+
+              {/* Dropdown — hanya platform terhubung, item dipisah garis sejajar */}
+              {chatOpen && (
                 <>
-                  <span
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[16px]"
-                    style={{ backgroundColor: `${PLATFORM_META[active.platform].color}1A` }}
-                  >
-                    {PLATFORM_META[active.platform].icon}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-[14px] font-bold text-white">{active.name}</p>
-                    {active.handle && (
-                      <p className="truncate text-[11px] text-white/40">{active.handle}</p>
-                    )}
+                  <div className="fixed inset-0 z-10" onClick={() => setChatOpen(false)} />
+                  <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-[8px] border border-[#2E3750] bg-[#1C222B] shadow-xl">
+                    <p className="border-b border-[#2E3750] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                      Mulai chat baru
+                    </p>
+                    {(Object.keys(PLATFORM_META) as ChatPlatform[])
+                      .filter((key) => PLATFORM_META[key].connected)
+                      .map((key, idx, arr) => {
+                        const meta = PLATFORM_META[key];
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => startChat(key)}
+                            className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[#232A3D] ${
+                              idx < arr.length - 1 ? "border-b border-[#2E3750]" : ""
+                            }`}
+                          >
+                            <span
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px]"
+                              style={{ backgroundColor: `${meta.color}1A` }}
+                            >
+                              {meta.icon}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-[13px] font-bold text-white">{meta.label}</span>
+                              <span className="block text-[10px]" style={{ color: meta.color }}>
+                                Terhubung
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      })}
                   </div>
                 </>
-              ) : (
-                <>
-                  {/* Placeholder persis referensi: avatar kosong + "Nama Akun" */}
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#2E3750] bg-[#0E1116]" />
-                  <p className="text-[14px] font-bold text-white">Nama Akun</p>
-                </>
               )}
             </div>
-
-            {/* Isi pesan */}
-            <div className="flex flex-1 items-center justify-center p-4 lg:min-h-[440px]">
-              {active ? (
-                <div className="text-center">
-                  <p className="text-[13px] text-[#64748B]">Belum ada pesan di percakapan ini.</p>
-                  <button
-                    type="button"
-                    className="mt-3 cursor-pointer rounded-[8px] bg-[#38BDF8]/15 px-4 py-2 text-[12px] font-bold text-[#38BDF8] transition-opacity hover:opacity-80"
-                  >
-                    Balas pesan
-                  </button>
-                </div>
-              ) : (
-                <p className="text-[12px] text-[#64748B]">
-                  Pilih percakapan dari daftar, atau klik Chat untuk memulai.
-                </p>
-              )}
-            </div>
-          </div>
+          </section>
         </div>
+
+        {/* ---- ZONA BAWAH (full-width): header Nama Akun + area percakapan ---- */}
+        <section className="flex min-h-[300px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B]">
+          {/* Header bar — Nama Akun + avatar, garis bawah konsisten */}
+          <div className="flex items-center gap-3 border-b border-[#2E3750] p-3">
+            {active ? (
+              <>
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[16px]"
+                  style={{ backgroundColor: `${PLATFORM_META[active.platform].color}1A` }}
+                >
+                  {PLATFORM_META[active.platform].icon}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-[14px] font-bold text-white">{active.name}</p>
+                  {active.handle && (
+                    <p className="truncate text-[11px] text-white/40">{active.handle}</p>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] border border-[#2E3750] bg-[#0E1116]" />
+                <p className="text-[14px] font-bold text-white">Nama Akun</p>
+              </>
+            )}
+          </div>
+
+          {/* Area percakapan */}
+          <div className="flex flex-1 items-center justify-center p-4">
+            {active ? (
+              <div className="text-center">
+                <p className="text-[13px] text-[#64748B]">Belum ada pesan di percakapan ini.</p>
+                <button
+                  type="button"
+                  className="mt-3 cursor-pointer rounded-[8px] bg-[#38BDF8]/15 px-4 py-2 text-[12px] font-bold text-[#38BDF8] transition-opacity hover:opacity-80"
+                >
+                  Balas pesan
+                </button>
+              </div>
+            ) : (
+              <p className="text-[12px] text-[#64748B]">
+                Pilih percakapan dari daftar, atau klik Chat untuk memulai.
+              </p>
+            )}
+          </div>
+        </section>
 
         {/* Catatan jujur */}
         <div className="rounded-[10px] border border-[#2E3750] bg-[#0E1116] p-3">
           <p className="text-[10px] leading-relaxed text-white/40">
-            💡 Layout Inbox persis referensi (Chat dropdown, filter, Nama Akun). Data pesan asli dari
-            Zernio belum aktif — daftar mulai kosong, tombol Chat membuka percakapan baru.
+            💡 Layout 3 zona persis referensi: daftar chat (kiri) · tombol Chat dropdown (kanan) ·
+            area percakapan (bawah full-width). Semua garis pemisah konsisten &amp; sejajar. Data pesan
+            asli Zernio belum aktif — daftar mulai kosong.
           </p>
         </div>
       </div>

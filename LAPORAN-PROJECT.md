@@ -2069,3 +2069,28 @@ BangBay kirim screenshot + **"aku mau di dalam dropdown itu yg sudah terhubung a
 | Source dropdown | ✅ filter `connected` + border-b sejajar |
 | Render `/inbox` | ✅ 200 (dropdown default tertutup — konten muncul setelah klik, normal client-side) |
 
+---
+
+### 59. 📥 UPDATE 59 — Selasa, 11 Agustus 2026 · 12:45 SEAST — Inbox: Rebuild Layout 3 Zona Persis Referensi (Garis Sejajar)
+
+BangBay kirim screenshot potongan (header "Nama Akun") + **"garis ini belum sama"** — layout 2 kolom lama tidak cocok dengan grid referensi. Rebuild total jadi **3 zona persis referensi** (source of truth = gambar).
+
+#### 🛠️ Layout 3 zona baru
+| Zona | Posisi | Isi |
+|---|---|---|
+| **1 — Daftar chat** | Kiri atas (lebar `1fr`) | Filter pills (Semua/Belum Dibaca) + daftar percakapan — **tiap item dipisah garis horizontal full-width** (`border-t #2E3750`), sejajar & konsisten |
+| **2 — Chat** | Kanan atas (sempit `230px`) | Tombol **Chat** full-width → dropdown (hanya platform terhubung TikTok/YouTube, item dipisah `border-b` sejajar) |
+| **3 — Percakapan** | Bawah (full-width) | Header **Nama Akun** + avatar (border-b konsisten) + area isi pesan |
+
+Garis kunci:
+- Semua zona pakai border `#2E3750` sama → grid rapi & sejajar
+- Daftar chat item pakai **border-t full-width** (bukan rounded card) — persis grid referensi
+- Header filter (zona 1) & header Nama Akun (zona 3) sama-sama `border-b` → horizontal line konsisten
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render `/inbox` | ✅ 200 — Chat, Semua, Belum Dibaca, Nama Akun, area percakapan semua tampil |
+
