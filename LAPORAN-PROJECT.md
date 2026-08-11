@@ -2265,3 +2265,27 @@ BangBay kirim screenshot pill row (Semua / Belum Dibaca / New Chat) + **"tidak r
 | `npm run lint` | ✅ 0 error / 0 warning |
 | `npm run build` | ✅ exit 0 |
 
+---
+
+### 67. 🤖 UPDATE 67 — Selasa, 11 Agustus 2026 · 14:45 SEAST — Inbox: Mode Agent di Dropdown (New Session + PINNED + SESSIONS)
+
+BangBay: **"tolong tambahkan di dropdown dengan nama Agent untuk icon nya ambil saja di D:\SmartDash\public\icons, dan tampilan nya seperti gambar yg aku kirim jika aku pilih Agent"** (referensi: UI session-based messaging — tombol oranye New Session, section PINNED & SESSIONS kosong, panel kanan garis tipis + kosong).
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Dropdown + item Agent** | Item **Agent** di paling atas dropdown "Pilih akun yang dibaca", icon **`/icons/Agent.png`** (dari public/icons), subtitle "Asisten AI SmartDash", dipisah garis dari platform, ada centang saat aktif |
+| **Tipe `AccountKey`** | `ChatPlatform \| "agent"` — state account bisa pilih Agent |
+| **Tombol dropdown dinamis** | Saat Agent dipilih → tampil icon Agent.png + label "Agent" |
+| **Mode Agent (`AgentSessionsView`)** | Jika `account === "agent"`, konten berubah persis referensi: sidebar kiri (260px) dengan tombol oranye **New Session**, section **PINNED** & **SESSIONS** (kosong), panel kanan garis tipis `border-b` + area kosong |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Icon Agent | ✅ `/icons/Agent.png` → 200 image/png |
+| Interaksi | dropdown Agent → mode Agent tampil (client-side, cek di browser) |
+
+> ℹ️ Perubahan diminta eksplisit BangBay → valid meski Inbox LOCKED. Tombol New Session masih kerangka UI (belum ada backend session agent).
+

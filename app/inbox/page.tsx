@@ -12,6 +12,7 @@ import Image from "next/image";
 
 // ---- Tipe ----
 type ChatPlatform = "tiktok" | "youtube" | "instagram" | "whatsapp";
+type AccountKey = ChatPlatform | "agent";
 
 type Chat = {
   id: number;
@@ -31,6 +32,13 @@ const PLATFORM_META: Record<
   youtube: { label: "YouTube", icon: "▶️", img: "/icons/youtube.png", color: "#FF0000", connected: true },
   instagram: { label: "Instagram", icon: "📸", img: "/icons/instagram.png", color: "#E1306C", connected: false },
   whatsapp: { label: "WhatsApp", icon: "💬", img: "/icons/whatsapp.png", color: "#25D366", connected: false },
+};
+
+// Meta untuk mode Agent (sesi AI) — icon asli dari public/icons
+const AGENT_META = {
+  label: "Agent",
+  img: "/icons/Agent.png",
+  color: "#F97316",
 };
 
 // ---- Helper: icon platform dari public/icons (PNG asli) ----
@@ -64,8 +72,8 @@ export default function InboxPage() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  // Akun yang dipilih untuk DIBACA chat-nya (TikTok/YouTube) — bukan untuk chat baru
-  const [account, setAccount] = useState<ChatPlatform>("tiktok");
+  // Akun yang dipilih untuk DIBACA chat-nya (TikTok/YouTube/Agent) — bukan untuk chat baru
+  const [account, setAccount] = useState<AccountKey>("tiktok");
   const [accountOpen, setAccountOpen] = useState(false);
   const [newChatOpen, setNewChatOpen] = useState(false);
 
@@ -161,10 +169,21 @@ export default function InboxPage() {
                 onClick={() => setAccountOpen((v) => !v)}
                 className="inline-flex cursor-pointer items-center gap-2 rounded-[8px] border border-[#2E3750] bg-[#232A3D] px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-[#2E3750]"
               >
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
-                  <PlatformImg src={PLATFORM_META[account].img} alt={PLATFORM_META[account].label} />
-                </span>
-                {PLATFORM_META[account].label}
+                {account === "agent" ? (
+                  <>
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                      <PlatformImg src={AGENT_META.img} alt={AGENT_META.label} />
+                    </span>
+                    {AGENT_META.label}
+                  </>
+                ) : (
+                  <>
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                      <PlatformImg src={PLATFORM_META[account].img} alt={PLATFORM_META[account].label} />
+                    </span>
+                    {PLATFORM_META[account].label}
+                  </>
+                )}
                 <svg
                   className={`h-3 w-3 transition-transform ${accountOpen ? "rotate-180" : ""}`}
                   viewBox="0 0 24 24"
@@ -187,6 +206,42 @@ export default function InboxPage() {
                     <p className="border-b border-[#2E3750] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
                       Pilih akun yang dibaca
                     </p>
+                    {/* Agent — mode sesi AI */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAccount("agent");
+                        setAccountOpen(false);
+                      }}
+                      className={`flex w-full cursor-pointer items-center gap-2.5 border-b border-[#2E3750] px-3 py-2.5 text-left transition-colors hover:bg-[#232A3D]`}
+                    >
+                      <span
+                        className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                        style={{ backgroundColor: `${AGENT_META.color}1A` }}
+                      >
+                        <PlatformImg src={AGENT_META.img} alt={AGENT_META.label} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13px] font-bold text-white">{AGENT_META.label}</span>
+                        <span className="block truncate text-[10px] text-white/40">
+                          Asisten AI SmartDash
+                        </span>
+                      </span>
+                      {account === "agent" && (
+                        <svg
+                          className="h-4 w-4 shrink-0 text-[#38BDF8]"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden
+                        >
+                          <path d="M20 6 9 17l-5-5" />
+                        </svg>
+                      )}
+                    </button>
                     {(Object.keys(PLATFORM_META) as ChatPlatform[])
                       .filter((key) => PLATFORM_META[key].connected)
                       .map((key, idx, arr) => {
@@ -241,6 +296,9 @@ export default function InboxPage() {
         </header>
 
         {/* ===== 2 KOLOM SEJAJAR: kiri daftar chat · kanan percakapan — FULL HEIGHT ===== */}
+        {account === "agent" ? (
+          <AgentSessionsView />
+        ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-2 lg:flex-row">
           {/* ---- PANEL KIRI: filter + daftar chat ---- */}
           <section className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:min-h-0 lg:w-[320px] lg:shrink-0">
@@ -448,7 +506,59 @@ export default function InboxPage() {
             </div>
           </section>
         </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+// ---- Mode Agent: tampilan sesi AI (referensi gambar BangBay) ----
+function AgentSessionsView() {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-2 lg:flex-row">
+      {/* Sidebar kiri: New Session + PINNED + SESSIONS */}
+      <section className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:min-h-0 lg:w-[260px] lg:shrink-0">
+        {/* Tombol New Session — oranye (referensi) */}
+        <div className="border-b border-[#2E3750] p-3">
+          <button
+            type="button"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-[#F97316] px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-[#EA580C]"
+          >
+            <svg
+              className="h-3 w-3"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            New Session
+          </button>
+        </div>
+
+        {/* Section PINNED — kosong (referensi) */}
+        <div className="flex flex-1 flex-col overflow-y-auto px-3 pb-3">
+          <p className="py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+            PINNED
+          </p>
+          <div className="flex-1" />
+
+          <p className="py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+            SESSIONS
+          </p>
+          <div className="flex-1" />
+        </div>
+      </section>
+
+      {/* Panel kanan: garis tipis atas + kosong (referensi) */}
+      <section className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:min-h-0 lg:min-w-0 lg:flex-1">
+        <div className="shrink-0 border-b border-[#2E3750]" />
+        <div className="flex-1" />
+      </section>
     </div>
   );
 }
