@@ -660,7 +660,7 @@ export default function AppsPage() {
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`rounded-full px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+              className={`rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors ${
                 active
                   ? "border border-[#F97316] bg-[#F97316]/10 text-[#F97316]"
                   : "border border-transparent text-[#94A3B8] hover:bg-[#2A3347] hover:text-[#E2E8F0]"
