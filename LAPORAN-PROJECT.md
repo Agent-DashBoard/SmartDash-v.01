@@ -1964,3 +1964,31 @@ Sekarang ganti warna brand = edit **1 file** (`dashboard-data.ts`) → semua iko
 | HTML `/platform/performance` | ✅ 5× Content Performance, TikTok + YouTube legend, #00F2EA + #FF0000 |
 | Referensi `PLATFORM_COLORS` | ✅ 5 file dashboard pakai satu sumber |
 
+---
+
+### 55. 🧹 UPDATE 55 — Selasa, 11 Agustus 2026 · 11:05 SEAST — Poles: Tooltip Jujur + Notes Persist
+
+Audit menyeluruh pagi ini: dashboard & detail sudah solid (9 commit FIX Content Performance sejak Update 54), tersisa poles kecil. BangBay: **"kerjakan 1 dan 5 saja dulu"** dari rekomendasi audit.
+
+#### 1️⃣ Fix tooltip "belum tersedia" (2 file)
+- **`content-performance.tsx`** — tooltip badge `"Buka halaman Content Performance — belum tersedia"` → **`"Buka halaman Content Performance"`**. Route `/platform/performance` SUDAH ada (200) — tooltip lama menyesatkan.
+- **`profile-card.tsx`** — tombol View Profile ternyata ngarah ke `/platform/profile` yang **masih 404** (folder belum dibuat). Karena halaman belum ada:
+  - Tombol **di-disable** (`cursor-not-allowed` + opacity-50) supaya gak klik → 404
+  - Tooltip jujur: **"Halaman Profile — segera hadir"**
+  - Bersihkan dead code: `handleViewProfile`, `PROFILE_ROUTE`, `useRouter` (tidak terpakai lagi)
+
+#### 5️⃣ Notes persist ke localStorage (1 file)
+- **`app/apps/page.tsx`** — contek persis pola Calendar (`smartdash-agenda`):
+  - Load: `useState` lazy init baca `localStorage["smartdash-notes"]` (guard `typeof window`)
+  - Save: `useEffect` simpan tiap `notes` berubah → tambah/hapus/edit/ganti warna **semua persist**
+  - Edge case: kalau user hapus SEMUA catatan → array kosong tetap disimpan → refresh tetap kosong (tidak balik ke default)
+- Sekarang Notes + Calendar dua-duanya persist; Email/Skill/Sessions masih in-memory (diluar scope).
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0, 38 pages |
+| HTTP `/` & `/apps` | ✅ 200 / 200 |
+| Source: tooltip baru + `smartdash-notes` | ✅ terpasang di file |
+

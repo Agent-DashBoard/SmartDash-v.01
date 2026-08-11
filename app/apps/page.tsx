@@ -324,8 +324,22 @@ export default function AppsPage() {
   const [composeMessage, setComposeMessage] = useState("");
   const [composeFile, setComposeFile] = useState("");
   // Notes — catatan + search
-  const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES);
-  const [activeNoteId, setActiveNoteId] = useState(INITIAL_NOTES[0]?.id ?? 0);
+  // Persist: baca dari localStorage supaya catatan gak hilang saat refresh (pola sama seperti agenda)
+  const [notes, setNotes] = useState<Note[]>(() => {
+    if (typeof window === "undefined") return INITIAL_NOTES;
+    try {
+      const raw = window.localStorage.getItem("smartdash-notes");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Array (termasuk kosong — user sengaja hapus semua) → pakai apa adanya
+        if (Array.isArray(parsed)) return parsed as Note[];
+      }
+    } catch {
+      // localStorage tidak tersedia / data korup → mulai dari default
+    }
+    return INITIAL_NOTES;
+  });
+  const [activeNoteId, setActiveNoteId] = useState(() => notes[0]?.id ?? 0);
   const [notesSearch, setNotesSearch] = useState("");
   // Modal "Add New Note" — buat catatan baru
   const [noteModalOpen, setNoteModalOpen] = useState(false);
@@ -387,6 +401,15 @@ export default function AppsPage() {
       // localStorage penuh / tidak tersedia — abaikan
     }
   }, [agendaEvents]);
+
+  // Simpan notes ke localStorage tiap berubah (persist — gak hilang saat refresh)
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("smartdash-notes", JSON.stringify(notes));
+    } catch {
+      // localStorage penuh / tidak tersedia — abaikan
+    }
+  }, [notes]);
 
   // Awal minggu dari cursor (dipakai Week view)
   const calWeekStart = startOfWeek(calCursor);

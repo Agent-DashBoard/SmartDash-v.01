@@ -127,7 +127,7 @@ export function ContentPerformanceChart({
           <button
             type="button"
             onClick={handleChartClick}
-            title="Buka halaman Content Performance — belum tersedia"
+            title="Buka halaman Content Performance"
             className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold text-white transition-opacity hover:opacity-80"
             style={{ backgroundColor: `${hex}25` }}
           >

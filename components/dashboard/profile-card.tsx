@@ -4,7 +4,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { DayRange, RANGE_FACTOR, parseNum, fmtNum, PLATFORM_COLORS } from "./dashboard-data";
 import { LiveData } from "./live-data";
 
@@ -71,8 +70,6 @@ export const PROFILE_META: Record<
   },
 };
 
-const PROFILE_ROUTE = "/platform/profile";
-
 export function ProfileCard({
   platform,
   days,
@@ -82,7 +79,6 @@ export function ProfileCard({
   days: DayRange;
   live?: LiveData;
 }) {
-  const router = useRouter();
   const meta = platform && PROFILE_META[platform] ? PROFILE_META[platform] : null;
 
   // ---- Data asli Zernio (kalau ada) ----
@@ -150,15 +146,6 @@ export function ProfileCard({
         value: fmtNum(Math.max(Math.round(parseNum(s.value) * RANGE_FACTOR[days]), 1)),
       }));
 
-  // View Profile → ke halaman profil asli platform
-  const handleViewProfile = () => {
-    if (platform && liveAcct?.profileUrl) {
-      window.open(liveAcct.profileUrl, "_blank");
-      return;
-    }
-    router.push(PROFILE_ROUTE);
-  };
-
   return (
     <div className="rounded-[10px] bg-[#1C222B] p-2">
       <div className="flex gap-3">
@@ -192,12 +179,13 @@ export function ProfileCard({
       </div>
 
       {/* Tombol View Profile — full-width di bawah stat, CTA utama kartu */}
+      {/* NOTE: halaman /platform/profile belum dibuat — tombol dinonaktifkan biar gak klik ke 404 */}
       <div className="mt-2">
         <button
           type="button"
-          onClick={handleViewProfile}
-          title="Buka halaman Profile — belum tersedia"
-          className="w-full cursor-pointer rounded-[8px] bg-[#251018] px-2.5 py-2 text-center transition-opacity hover:opacity-80"
+          disabled
+          title="Halaman Profile — segera hadir"
+          className="w-full cursor-not-allowed rounded-[8px] bg-[#251018] px-2.5 py-2 text-center opacity-50"
         >
           <span className="text-[11px] font-bold text-white">View Profile</span>
         </button>
