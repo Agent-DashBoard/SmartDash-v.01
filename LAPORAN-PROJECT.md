@@ -1992,3 +1992,33 @@ Audit menyeluruh pagi ini: dashboard & detail sudah solid (9 commit FIX Content 
 | HTTP `/` & `/apps` | ✅ 200 / 200 |
 | Source: tooltip baru + `smartdash-notes` | ✅ terpasang di file |
 
+---
+
+### 56. 📥 UPDATE 56 — Selasa, 11 Agustus 2026 · 12:05 SEAST — Menu Baru: Inbox
+
+BangBay: **"buatkan 1 menu baru di bawah social dengan nama Inbox"**.
+
+#### 🛠️ Yang dibuat
+| File | Perubahan |
+|---|---|
+| **`components/layout/sidebar.tsx`** | Tambah nav item **Inbox** (`/inbox`) di bawah Social — ikon kotak surat (lucide inbox), konsisten dengan menu lain |
+| **`app/inbox/page.tsx`** | Halaman Inbox baru (client component): |
+| | • Header "Inbox" + breadcrumb + jam/dot (pola dashboard) |
+| | • 3 kartu ringkasan: Total Pesan · Belum Dibaca · Platform |
+| | • Filter: Semua / Belum dibaca |
+| | • Daftar pesan (avatar platform + badge warna + preview + waktu) |
+| | • Panel baca pesan (klik daftar → isi + tombol "Balas pesan") |
+| | • Klik pesan → otomatis tandai sudah dibaca |
+| | • Catatan jujur: data contoh sampai integrasi pesan Zernio aktif |
+
+#### ⚠️ Catatan jujur
+- Halaman Inbox pakai **data contoh (mock)** — belum ada integrasi pesan/DM dari Zernio. Begitu API pesan aktif, daftar tinggal disambung ke data asli.
+- Desain: daftar kiri (320px) + panel baca kanan, responsive (stack di layar kecil).
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| HTTP `/inbox` | ✅ 200, render lengkap (Total Pesan, Belum Dibaca, Balas pesan, TikTok/YouTube badge) |
+

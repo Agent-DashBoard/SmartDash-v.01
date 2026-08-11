@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Social Feed — Variant 2</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; background: #0E1116; color: #fff; line-height: 1.5; }
+  .dot { width: 7px; height: 7px; border-radius: 9999px; background: #22C55E; box-shadow: 0 0 0 0 rgba(34,197,94,.6); animation: pulse 1.8s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,.55); } 70% { box-shadow: 0 0 0 6px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+</style>
+</head>
+<body class="min-h-screen">
+<div class="mx-auto max-w-6xl px-6 py-6">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between">
+    <div>
+      <h1 class="text-[30px] font-extrabold leading-tight">Social</h1>
+      <p class="text-[13px] text-[#94A3B8]">Dashboard • Aktivitas konten lintas platform</p>
+    </div>
+    <div class="flex items-center gap-2 text-[13px] font-medium text-white/60">
+      <span class="dot"></span>
+      <span id="clock">--:--</span>
+    </div>
+  </header>
+
+  <p class="mt-2 text-[12px] leading-relaxed text-white/50">
+    Timeline semua aktivitas konten dari akun terhubung — TikTok &amp; YouTube.
+  </p>
+
+  <!-- Filter tabs -->
+  <div class="mt-4 flex items-center gap-2">
+    <button data-filter="all" class="filter-btn cursor-pointer rounded-full bg-[#38BDF8]/15 px-4 py-1.5 text-[12px] font-bold text-[#38BDF8] transition-colors hover:bg-[#38BDF8]/25">Semua</button>
+    <button data-filter="tiktok" class="filter-btn cursor-pointer rounded-full px-4 py-1.5 text-[12px] font-bold text-white/60 transition-colors hover:bg-[#232A3D]">TikTok</button>
+    <button data-filter="youtube" class="filter-btn cursor-pointer rounded-full px-4 py-1.5 text-[12px] font-bold text-white/60 transition-colors hover:bg-[#232A3D]">YouTube</button>
+  </div>
+
+  <!-- Timeline -->
+  <div class="mt-4 flex flex-col gap-3">
+
+    <!-- Post TikTok 1 (terbaru) -->
+    <div class="post-card rounded-[12px] border border-[#2E3750] bg-[#1C222B] p-4" data-platform="tiktok">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#00F2EA]/15 text-[16px]">🎵</div>
+        <div class="min-w-0 flex-1">
+          <p class="text-[13px] font-bold">BangBay | Audio &amp; Cuan</p>
+          <p class="text-[11px] text-[#94A3B8]">TikTok · 22 Jul 2025</p>
+        </div>
+        <span class="rounded-full bg-[#00F2EA]/15 px-2.5 py-1 text-[10px] font-bold text-[#00F2EA]">TikTok</span>
+      </div>
+      <p class="mt-3 text-[13px] leading-relaxed text-white/85">
+        TWS Fitur Mewah, Harga Masuk Akal – iPhone Users Pasti Suka! Buat kamu yang lagi nyari TWS...
+      </p>
+      <div class="mt-3 flex items-center gap-4 text-[11px] font-semibold text-white/60">
+        <span>👍 14</span><span>💬 5</span><span>↗️ 6</span>
+        <a href="#" class="ml-auto rounded-full border border-[#00F2EA]/40 bg-[#00F2EA]/10 px-3 py-1 text-[#00F2EA] transition-colors hover:bg-[#00F2EA]/20">Buka di TikTok</a>
+      </div>
+    </div>
+
+    <!-- Post YouTube (tes) -->
+    <div class="post-card rounded-[12px] border border-[#2E3750] bg-[#1C222B] p-4" data-platform="youtube">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#FF0000]/15 text-[16px]">▶️</div>
+        <div class="min-w-0 flex-1">
+          <p class="text-[13px] font-bold">Bang Panjul</p>
+          <p class="text-[11px] text-[#94A3B8]">YouTube · 10 Agu 2026</p>
+        </div>
+        <span class="rounded-full bg-[#FF0000]/15 px-2.5 py-1 text-[10px] font-bold text-[#FF0000]">YouTube</span>
+      </div>
+      <p class="mt-3 text-[13px] leading-relaxed text-white/85">
+        INI HANYA TES
+      </p>
+      <div class="mt-3 flex items-center gap-4 text-[11px] font-semibold text-white/60">
+        <span>👍 0</span><span>💬 0</span>
+        <a href="#" class="ml-auto rounded-full border border-[#FF0000]/40 bg-[#FF0000]/10 px-3 py-1 text-[#FF0000] transition-colors hover:bg-[#FF0000]/20">Buka di YouTube</a>
+      </div>
+    </div>
+
+    <!-- Post TikTok 2 -->
+    <div class="post-card rounded-[12px] border border-[#2E3750] bg-[#1C222B] p-4" data-platform="tiktok">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#00F2EA]/15 text-[16px]">🎵</div>
+        <div class="min-w-0 flex-1">
+          <p class="text-[13px] font-bold">BangBay | Audio &amp; Cuan</p>
+          <p class="text-[11px] text-[#94A3B8]">TikTok · 22 Jun 2025</p>
+        </div>
+        <span class="rounded-full bg-[#00F2EA]/15 px-2.5 py-1 text-[10px] font-bold text-[#00F2EA]">TikTok</span>
+      </div>
+      <p class="mt-3 text-[13px] leading-relaxed text-white/85">
+        TWS Buat Lari, Kerja, Nongkrong? Ini Jawabannya! Udah bosen sama TWS...
+      </p>
+      <div class="mt-3 flex items-center gap-4 text-[11px] font-semibold text-white/60">
+        <span>👍 3</span><span>💬 0</span><span>↗️ 1</span>
+        <a href="#" class="ml-auto rounded-full border border-[#00F2EA]/40 bg-[#00F2EA]/10 px-3 py-1 text-[#00F2EA] transition-colors hover:bg-[#00F2EA]/20">Buka di TikTok</a>
+      </div>
+    </div>
+
+    <!-- Post TikTok 3 -->
+    <div class="post-card rounded-[12px] border border-[#2E3750] bg-[#1C222B] p-4" data-platform="tiktok">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[#00F2EA]/15 text-[16px]">🎵</div>
+        <div class="min-w-0 flex-1">
+          <p class="text-[13px] font-bold">BangBay | Audio &amp; Cuan</p>
+          <p class="text-[11px] text-[#94A3B8]">TikTok · 21 Jun 2025</p>
+        </div>
+        <span class="rounded-full bg-[#00F2EA]/15 px-2.5 py-1 text-[10px] font-bold text-[#00F2EA]">TikTok</span>
+      </div>
+      <p class="mt-3 text-[13px] leading-relaxed text-white/85">
+        TWS Mewah Harga Murah?! Bisa Swipe TikTok dari Casing! 🤯🔥 🎧 Ini TWS ra...
+      </p>
+      <div class="mt-3 flex items-center gap-4 text-[11px] font-semibold text-white/60">
+        <span>👍 28</span><span>💬 4</span><span>↗️ 11</span>
+        <a href="#" class="ml-auto rounded-full border border-[#00F2EA]/40 bg-[#00F2EA]/10 px-3 py-1 text-[#00F2EA] transition-colors hover:bg-[#00F2EA]/20">Buka di TikTok</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Catatan -->
+  <div class="mt-4 rounded-[10px] border border-[#2E3750] bg-[#0E1116] p-3">
+    <p class="text-[10px] leading-relaxed text-white/40">
+      💡 Prototipe desain (HTML). Data postingan asli dari Zernio — 3 TikTok + 1 YouTube. Filter tab bisa dicoba klik.
+    </p>
+  </div>
+</div>
+
+<script>
+  const el = document.getElementById("clock");
+  const tick = () => { el.textContent = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }); };
+  tick(); setInterval(tick, 30000);
+
+  // Filter tabs
+  const btns = document.querySelectorAll(".filter-btn");
+  const cards = document.querySelectorAll(".post-card");
+  btns.forEach((b) => b.addEventListener("click", () => {
+    const f = b.dataset.filter;
+    btns.forEach((x) => { x.classList.remove("bg-[#38BDF8]/15", "text-[#38BDF8]"); x.classList.add("text-white/60"); });
+    b.classList.add("bg-[#38BDF8]/15", "text-[#38BDF8]"); b.classList.remove("text-white/60");
+    cards.forEach((c) => { c.style.display = (f === "all" || c.dataset.platform === f) ? "" : "none"; });
+  }));
+</script>
+</body>
+</html>
