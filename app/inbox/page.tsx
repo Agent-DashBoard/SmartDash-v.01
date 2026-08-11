@@ -9,10 +9,34 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import ReactMarkdown from "react-markdown";
+
+// Render pesan agent sebagai markdown (dipindah dari apps/page.tsx)
+function MarkdownRenderer({ text }: { text: string }) {
+  return (
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+        code: ({ children }) => (
+          <code className="rounded bg-[#0E1116] px-1 py-0.5 text-[12px] text-[#FBBF24]">{children}</code>
+        ),
+        pre: ({ children }) => (
+          <pre className="my-2 overflow-x-auto rounded-lg bg-[#0E1116] p-3 text-[12px] text-[#E2E8F0]">{children}</pre>
+        ),
+        ul: ({ children }) => <ul className="mb-2 list-disc space-y-1 pl-5">{children}</ul>,
+        ol: ({ children }) => <ol className="mb-2 list-decimal space-y-1 pl-5">{children}</ol>,
+        strong: ({ children }) => <strong className="font-bold text-white">{children}</strong>,
+      }}
+    >
+      {text}
+    </ReactMarkdown>
+  );
+}
 
 // ---- Tipe ----
 type ChatPlatform = "tiktok" | "youtube" | "instagram" | "whatsapp";
 type AccountKey = ChatPlatform | "agent";
+type Msg = { role: "user" | "agent" | "error"; text: string };
 
 type Chat = {
   id: number;
@@ -635,16 +659,113 @@ function ChatItem({
   );
 }
 
-// ---- Mode Agent: tampilan sesi AI (referensi gambar BangBay) ----
+// ---- Mode Agent: panel chat sesi AI (komponen asli dari apps/page.tsx) ----
+const AGENT_INITIAL_MSG: Msg = {
+  role: "agent",
+  text:
+    "Halo! 👋 Aku **SmartDash**, asisten AI-mu. Aku bisa bantu soal dashboard, analitik konten, automasi, atau apa aja yang berhubungan dengan project kamu. Mau tanya apa hari ini?",
+};
+
+type AgentSession = {
+  id: number;
+  title: string;
+  pinned?: boolean;
+  hermesSessionId?: string; // resume multi-turn ke backend
+};
+
+const INITIAL_AGENT_SESSIONS: AgentSession[] = [
+  { id: 1, title: "Kerangka Layout SmartDash" },
+  { id: 2, title: "PR Apps" },
+  { id: 3, title: "Content Performance BarChart" },
+];
+
+const AGENT_SIDEBAR_W = 260;
+
 function AgentSessionsView() {
+  const [agentSessions, setAgentSessions] = useState<AgentSession[]>(INITIAL_AGENT_SESSIONS);
+  const [agentActiveSession, setAgentActiveSession] = useState(1);
+  const [agentMessages, setAgentMessages] = useState<Msg[]>([AGENT_INITIAL_MSG]);
+  const [agentInput, setAgentInput] = useState("");
+  const [agentLoading, setAgentLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const text = agentInput.trim();
+    if (!text || agentLoading) return;
+
+    const userMsg: Msg = { role: "user", text };
+    const history: Msg[] = [...agentMessages, userMsg];
+    setAgentMessages(history);
+    setAgentInput("");
+    setAgentLoading(true);
+
+    try {
+      const res = await fetch("/api/hermes/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: history.map((m) => ({
+            role: m.role === "error" ? "user" : m.role,
+            content: m.text,
+          })),
+          sessionId:
+            agentSessions.find((s) => s.id === agentActiveSession)?.hermesSessionId ?? null,
+        }),
+      });
+      const data = await res.json();
+
+      if (data?.ok && typeof data.reply === "string" && data.reply.trim()) {
+        setAgentMessages((prev) => [...prev, { role: "agent", text: data.reply }]);
+        if (typeof data.sessionId === "string" && data.sessionId) {
+          setAgentSessions((prev) =>
+            prev.map((s) =>
+              s.id === agentActiveSession ? { ...s, hermesSessionId: data.sessionId } : s
+            )
+          );
+        }
+      } else {
+        setAgentMessages((prev) => [
+          ...prev,
+          { role: "error", text: `⚠️ ${data?.error || "Terjadi kesalahan — coba lagi."}` },
+        ]);
+      }
+    } catch {
+      setAgentMessages((prev) => [
+        ...prev,
+        {
+          role: "error",
+          text: "⚠️ Gagal terhubung ke server. Pastikan gateway SmartDash aktif, lalu coba lagi.",
+        },
+      ]);
+    } finally {
+      setAgentLoading(false);
+    }
+  }
+
+  const pinnedSessions = agentSessions.filter((s) => s.pinned);
+  const otherSessions = agentSessions.filter((s) => !s.pinned);
+
+  function handleNewSession() {
+    const nextId = Math.max(0, ...agentSessions.map((s) => s.id)) + 1;
+    setAgentSessions((prev) => [{ id: nextId, title: "Sesi baru" }, ...prev]);
+    setAgentActiveSession(nextId);
+    setAgentMessages([AGENT_INITIAL_MSG]);
+  }
+
+  const activeSessionData = agentSessions.find((s) => s.id === agentActiveSession);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 lg:flex-row">
-      {/* Sidebar kiri: New Session + PINNED + SESSIONS */}
-      <section className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:min-h-0 lg:w-[260px] lg:shrink-0">
-        {/* Tombol New Session — oranye (referensi) */}
+      {/* ===== Sidebar kiri: New Session + PINNED + SESSIONS ===== */}
+      <section
+        className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#0E1116]"
+        style={{ width: AGENT_SIDEBAR_W }}
+      >
+        {/* New Session — oranye (sesuai gambar referensi) */}
         <div className="border-b border-[#2E3750] p-3">
           <button
             type="button"
+            onClick={handleNewSession}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-[#F97316] px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-[#EA580C]"
           >
             <svg
@@ -663,25 +784,161 @@ function AgentSessionsView() {
           </button>
         </div>
 
-        {/* Section PINNED — kosong (referensi) */}
-        <div className="flex flex-1 flex-col overflow-y-auto px-3 pb-3">
-          <p className="py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
-            PINNED
-          </p>
-          <div className="flex-1" />
+        {/* Daftar sesi — PINNED di atas, SESSIONS di bawah */}
+        <div className="flex-1 overflow-y-auto px-2 pb-2">
+          {pinnedSessions.length > 0 && (
+            <>
+              <p className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                PINNED
+              </p>
+              {pinnedSessions.map((s) => (
+                <AgentSessionItem
+                  key={s.id}
+                  s={s}
+                  active={agentActiveSession === s.id}
+                  onSelect={() => setAgentActiveSession(s.id)}
+                />
+              ))}
+            </>
+          )}
 
-          <p className="py-2.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+          <p className={pinnedSessions.length > 0 ? "mt-1 px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40" : "px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40"}>
             SESSIONS
           </p>
-          <div className="flex-1" />
+          {otherSessions.length === 0 ? (
+            <p className="px-2 py-4 text-center text-[11px] text-[#64748B]">
+              Tidak ada sesi. Klik New Session untuk memulai.
+            </p>
+          ) : (
+            otherSessions.map((s) => (
+              <AgentSessionItem
+                key={s.id}
+                s={s}
+                active={agentActiveSession === s.id}
+                onSelect={() => setAgentActiveSession(s.id)}
+              />
+            ))
+          )}
         </div>
       </section>
 
-      {/* Panel kanan: garis tipis atas + kosong (referensi) */}
-      <section className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:min-h-0 lg:min-w-0 lg:flex-1">
-        <div className="shrink-0 border-b border-[#2E3750]" />
-        <div className="flex-1" />
+      {/* ===== Panel kanan: chat view ===== */}
+      <section className="flex min-h-[320px] flex-1 flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B] lg:min-h-0 lg:min-w-0 lg:flex-1">
+        {/* Header sesi aktif */}
+        <div className="border-b border-[#2E3750] px-4 py-2.5">
+          <p className="truncate text-[13px] font-bold text-white">
+            {activeSessionData?.title ?? "Pilih sesi"}
+          </p>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 space-y-3 overflow-y-auto p-4">
+          {agentMessages.length === 0 ? (
+            <p className="text-center text-[12px] text-[#64748B]">
+              Belum ada pesan. Mulai ketik di bawah.
+            </p>
+          ) : (
+            agentMessages.map((m, i) => (
+              <div
+                key={i}
+                className={`flex max-w-[80%] flex-col ${
+                  m.role === "user" ? "ml-auto items-end" : "items-start"
+                }`}
+              >
+                <div
+                  className={`rounded-[14px] px-3 py-2 text-[13px] leading-relaxed ${
+                    m.role === "user"
+                      ? "bg-[#38BDF8]/15 text-white"
+                      : m.role === "error"
+                      ? "rounded-[8px] bg-[#EF4444]/15 text-[#FCA5A5]"
+                      : "bg-[#1C222B] text-white"
+                  }`}
+                >
+                  {m.role === "error" ? (
+                    <span className="whitespace-pre-wrap">{m.text}</span>
+                  ) : m.role === "agent" ? (
+                    <MarkdownRenderer text={m.text} />
+                  ) : (
+                    <span className="whitespace-pre-wrap">{m.text}</span>
+                  )}
+                </div>
+                {i === agentMessages.length - 1 && agentLoading && m.role === "user" && (
+                  <span className="mt-2 text-[11px] text-[#64748B]">
+                    SmartDash lagi mikir...
+                  </span>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Input */}
+        <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-[#2E3750] p-3">
+          <textarea
+            value={agentInput}
+            onChange={(e) => setAgentInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                const ev = new Event("submit", { cancelable: true, bubbles: true });
+                e.currentTarget.form?.dispatchEvent(ev);
+              }
+            }}
+            rows={1}
+            autoFocus
+            placeholder="Ketik pesan..."
+            className="min-h-[36px] flex-1 resize-none rounded-[8px] border border-[#2E3750] bg-[#0E1116] px-3 py-1.5 text-[13px] text-white outline-none placeholder:text-white/40 focus:border-[#38BDF8]/60"
+          />
+          <button
+            type="submit"
+            disabled={agentLoading || !agentInput.trim()}
+            className={`flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-[8px] bg-[#38BDF8] text-[#0E1116] transition-colors ${
+              agentLoading || !agentInput.trim()
+                ? "cursor-not-allowed opacity-50"
+                : "hover:brightness-110"
+            }`}
+            aria-label="Kirim"
+          >
+            <svg
+              className="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+        </form>
       </section>
     </div>
+  );
+}
+
+// ---- Item sesi di sidebar Agent (pola sama dengan apps/page.tsx) ----
+function AgentSessionItem({
+  s,
+  active,
+  onSelect,
+}: {
+  s: AgentSession;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`block w-full truncate rounded-lg px-3 py-2 text-left text-[13px] transition-colors ${
+        active
+          ? "bg-[#38BDF8]/25 font-semibold text-white"
+          : "text-[#94A3B8] hover:bg-[#232A3D] hover:text-[#E2E8F0]"
+      }`}
+    >
+      {s.title}
+    </button>
   );
 }

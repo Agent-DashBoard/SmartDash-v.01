@@ -2360,3 +2360,29 @@ BangBay: **"jaraknya terlalu jauh antara PINNED dan SESSION. itu nanti tujuan ny
 | Render `/inbox` | ✅ PINNED + SESSIONS + New Chat + BangBay tampil |
 | Pin behavior | client-side: klik icon pin → chat naik turun antar section |
 
+---
+
+### 71. 🤖 UPDATE 71 — Selasa, 11 Agustus 2026 · 17:45 SEAST — Inbox: Fitur Pin untuk Agent (hapus pin sosmed) + AgentSessionsView diisi
+
+BangBay: **"moka jarak nya terlalu jauh antara PINNED dan SESSION, itu nanti tujuan nya agar Jika ada chat yg di pinned maka dia akan pindah ke atas"** + screenshot hasil. Klarifikasi: **fitur pin ini khusus Agent session, bukan chat sosmed**.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Hapus pin di chat sosmed** | Field `pinned?` tetap ada di `Chat` type (netral) tapi tiap item chat sosmed tidak punya toggle pin — sesuai permintaan Bang (pin = khusus Agent) |
+| **AgentSessionsView diisi penuh** | Dari skeleton kosong → komponen chat aseli: sidebar 260px (New Session + PINNED + SESSIONS), panel kanan chat view (messages + input + loading) |
+| **Logika pin Agent** | `pinnedSessions` di-urut atas, `otherSessions` di bawah. Header SESSIONS tetap muncul kecuali benar-benar kosong |
+| **Jarak kecil** | `px-2 py-1.5` + `mt-1` antar section (bukan `py-4` sebelumnya yang terlalu renggang) |
+| **Component dipindah** | `Msg` type, `MarkdownRenderer` (dengan react-markdown), `AgentSessionItem` — semua port dari `apps/page.tsx` |
+| **POST /api/hermes/chat** | `handleSubmit` lengkap: kirim history + sessionId, handle `data.reply` / `data.sessionId`, error boundary |
+| **Loading indicator** | "SmartDash lagi mikir..." di bawah pesan terakhir user |
+| **Sidebar kiri bg** | `bg-[#0E1116]` (gelap, beda sedikit dari panel kanan `#1C222B`) — mirip Hermes Desktop |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| Inbox lint | ✅ 0 warning (hanya apps/page.tsx dari Abbu — bukan kita) |
+| `npm run build` | ✅ exit 0 |
+| `/api/hermes/chat` | persisten — `handleSubmit` sudah siap POST ke endpoint yang sama |
+| Interaksi | buka /inbox → pilih Agent → lihat New Session, PINNED, SESSIONS, chat view + input |
+
