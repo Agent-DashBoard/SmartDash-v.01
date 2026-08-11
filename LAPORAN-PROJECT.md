@@ -2289,3 +2289,29 @@ BangBay: **"tolong tambahkan di dropdown dengan nama Agent untuk icon nya ambil 
 
 > ℹ️ Perubahan diminta eksplisit BangBay → valid meski Inbox LOCKED. Tombol New Session masih kerangka UI (belum ada backend session agent).
 
+---
+
+### 68. ⚙️ UPDATE 68 — Selasa, 11 Agustus 2026 · 16:30 SEAST — Settings Page (Persis Referensi)
+
+BangBay: **"siap untuk isi menu Setting? ... buatkan semirip mungkin ya bro"** + kirim screenshot referensi halaman Settings (tab Account aktif).
+
+#### 🛠️ Yang diubah (`app/settings/page.tsx` — dari stub `notFound()` → halaman penuh)
+| Perubahan | Detail |
+|---|---|
+| **Header** | Judul **Settings** + breadcrumb **Dashboard • Settings** (Dashboard klikable → `/`) + jam & dot hijau (pola dashboard, sama persis Inbox) |
+| **Tab nav** | 4 pill: **Account** (aktif biru) / Skill / Integrations / Bills — bisa dipindah; tab lain placeholder "sedang disiapkan" |
+| **Kartu kiri atas** | **Personal Details** — "Change your profile picture from here" — avatar bulat 112px pakai `/images/Contoh-PP-Profile.jpg` + tombol **Upload** & **Reset** |
+| **Kartu kanan atas** | **Change Password** — "To change your password please confirm here" — 3 input: Current / New / Confirm Password |
+| **Kartu bawah** | **Personal Details** — "To change your personal detail, edit and save from here" — form 2 kolom (First Name, Email, Bio textarea \| Last Name, Phone) + tombol **Save** (biru solid) & **Cancel** (outline) kanan bawah |
+| **Gaya konsisten** | bg `#0E1116`, card `#1C222B`, border `#2E3750`, input bg `#0E1116`, focus `#38BDF8`, font Inter |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render `/settings` | ✅ semua elemen: tab, kartu, field, tombol, avatar — HTTP 200 |
+| Avatar | ✅ `/images/Contoh-PP-Profile.jpg` (16 ref di HTML) |
+
+> ℹ️ Route `/settings/api-keys`, `/settings/billing`, `/settings/profile` masih stub terpisah — belum tersentuh.
+
