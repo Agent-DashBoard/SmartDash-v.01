@@ -2094,3 +2094,26 @@ Garis kunci:
 | `npm run build` | ✅ exit 0 |
 | Render `/inbox` | ✅ 200 — Chat, Semua, Belum Dibaca, Nama Akun, area percakapan semua tampil |
 
+---
+
+### 60. 📥 UPDATE 60 — Selasa, 11 Agustus 2026 · 12:55 SEAST — Inbox: Layout 2 Kolom Sejajar Persis Screenshot Referensi
+
+BangBay kirim screenshot final + **"seperti ini moka liat garis pemisah nya sejajar, tolong buatkan semirip ini ya"** — layout target: Chat button di bawah breadcrumb (header kiri), 2 kolom sejajar (daftar chat kiri + Nama Akun kanan).
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Chat button pindah ke header** | Di bawah breadcrumb "Dashboard • Inbox", kiri — bg `#232A3D` (abu terang) + ikon + chevron dropdown |
+| **Layout 2 kolom** | `grid lg:grid-cols-[320px_1fr]` — kiri daftar chat (pills Semua/Belum Dibaca + list), kanan panel percakapan (Nama Akun) |
+| **Garis pemisah SEJAJAR** | Header kiri & kanan sama-sama `h-[52px]` + `border-b #2E3750` → kedua garis horizontal **sama tinggi sempurna**; panel kiri & kanan `items-stretch` → tinggi sama, garis luar sejajar |
+| **Nama Akun placeholder** | Kotak avatar `rounded-[8px]` + teks "Nama Akun" abu terang (`#94A3B8`) — persis referensi |
+| **Dropdown tetap** | Hanya platform terhubung (TikTok/YouTube), item dipisah border-b sejajar |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render `/inbox` | ✅ 200 — Chat, Semua, Belum Dibaca, Nama Akun tampil |
+| Garis sejajar | ✅ `h-[52px]` terpasang di header kiri & kanan (2x) |
+
