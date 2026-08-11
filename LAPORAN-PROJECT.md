@@ -2315,3 +2315,24 @@ BangBay: **"siap untuk isi menu Setting? ... buatkan semirip mungkin ya bro"** +
 
 > ℹ️ Route `/settings/api-keys`, `/settings/billing`, `/settings/profile` masih stub terpisah — belum tersentuh.
 
+---
+
+### 69. ⚙️ UPDATE 69 — Selasa, 11 Agustus 2026 · 16:45 SEAST — Settings: Fix Sesuai Screenshot BangBay
+
+BangBay kirim screenshot hasil + **"hasilnya kok gk sesuai dengan gambar referensi ya?"** → dibandingkan referensi (composer 16-09-22) vs hasil (16-14-11), ditemukan 4 beda & diperbaiki.
+
+#### 🛠️ Yang diubah (`app/settings/page.tsx`)
+| Perubahan | Sebelum (salah) | Sesudah (sesuai referensi) |
+|---|---|---|
+| **Bio** | Setengah lebar (di kolom kiri grid) | **Full-width di bawah grid** First/Last Name + Email/Phone |
+| **Tombol Save** | Solid biru `bg-[#38BDF8]` | **Outline** abu-abu (border `#2E3750`, bg transparan, teks putih) — sama gaya dgn Cancel |
+| **Tab aktif** | Biru `#38BDF8` | **Fill gelap solid** `bg-[#232A3D] text-white` (inactive tetap outline) |
+| **Avatar profil** | `/images/Contoh-PP-Profile.jpg` | **`/icons/Agent.png`** (kartun AI jaket oranye — persis referensi) |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render `/settings` | ✅ avatar Agent (via next/image 16 ref), Bio full-width setelah Last Name/Phone, Save outline |
+

@@ -107,7 +107,7 @@ export default function SettingsPage() {
               onClick={() => setTab(t.key)}
               className={`cursor-pointer whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[11px] font-bold transition-colors ${
                 tab === t.key
-                  ? "border-[#38BDF8]/50 bg-[#38BDF8]/10 text-[#38BDF8]"
+                  ? "border-transparent bg-[#232A3D] text-white"
                   : "border-[#2E3750] bg-transparent text-white/70 hover:bg-[#232A3D]"
               }`}
             >
@@ -133,7 +133,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-center py-4">
                   <span className="relative flex h-28 w-28 overflow-hidden rounded-full border border-[#2E3750]">
                     <Image
-                      src="/images/Contoh-PP-Profile.jpg"
+                      src="/icons/Agent.png"
                       alt="Profile"
                       fill
                       sizes="112px"
@@ -181,32 +181,36 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                {/* Kolom 1 */}
-                <div className="flex flex-col gap-3">
-                  <Field label="First Name" placeholder="First name" />
-                  <Field label="Email" type="email" placeholder="you@example.com" />
-                  <label className="block">
-                    <span className="mb-1 block text-[11px] font-semibold text-white/60">Bio</span>
-                    <textarea
-                      rows={4}
-                      placeholder="Tell something about yourself"
-                      className="w-full resize-none rounded-[8px] border border-[#2E3750] bg-[#0E1116] px-3 py-2 text-[12px] text-white outline-none transition-colors placeholder:text-white/30 focus:border-[#38BDF8]/60"
-                    />
-                  </label>
+              <div className="flex flex-col gap-3">
+                <div className="grid gap-3 md:grid-cols-2">
+                  {/* Kolom 1 */}
+                  <div className="flex flex-col gap-3">
+                    <Field label="First Name" placeholder="First name" />
+                    <Field label="Email" type="email" placeholder="you@example.com" />
+                  </div>
+
+                  {/* Kolom 2 */}
+                  <div className="flex flex-col gap-3">
+                    <Field label="Last Name" placeholder="Last name" />
+                    <Field label="Phone" placeholder="+62 812 3456 7890" />
+                  </div>
                 </div>
 
-                {/* Kolom 2 */}
-                <div className="flex flex-col gap-3">
-                  <Field label="Last Name" placeholder="Last name" />
-                  <Field label="Phone" placeholder="+62 812 3456 7890" />
-                </div>
+                {/* Bio — full-width di bawah grid (sesuai referensi) */}
+                <label className="block">
+                  <span className="mb-1 block text-[11px] font-semibold text-white/60">Bio</span>
+                  <textarea
+                    rows={4}
+                    placeholder="Tell something about yourself"
+                    className="w-full resize-none rounded-[8px] border border-[#2E3750] bg-[#0E1116] px-3 py-2 text-[12px] text-white outline-none transition-colors placeholder:text-white/30 focus:border-[#38BDF8]/60"
+                  />
+                </label>
               </div>
 
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  className="cursor-pointer rounded-[8px] bg-[#38BDF8] px-4 py-1.5 text-[11px] font-bold text-[#0E1116] transition-opacity hover:opacity-80"
+                  className="cursor-pointer rounded-[8px] border border-[#2E3750] bg-transparent px-4 py-1.5 text-[11px] font-bold text-white transition-colors hover:bg-[#232A3D]"
                 >
                   Save
                 </button>
