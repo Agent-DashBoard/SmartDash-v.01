@@ -2220,3 +2220,29 @@ BangBay: **"oya moka icon tolong sesuaikan dan aku sudah siapkan di D:\SmartDash
 
 > ℹ️ Perubahan diminta eksplisit BangBay → valid meski Inbox LOCKED. Icon muncul saat dropdown dibuka / chat dipilih (client-side, tidak terlihat di SSR).
 
+---
+
+### 65. 📥 UPDATE 65 — Selasa, 11 Agustus 2026 · 14:00 SEAST — Inbox: Dropdown = Pilih Akun Dibaca + Tombol New Chat Baru
+
+BangBay: **"di dropdown itu bukan untuk chat baru tapi memilih akun mana yg akan di baca chatnya, tiktok kah atau youtube, untuk chat baru lebih baik buat lagi dan taro di samping kotak Belum Dibaca dengan nama New Chat"**.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Dropdown atas = PILIH AKUN** | Tombol atas (di bawah breadcrumb) sekarang menampilkan akun terpilih: **icon + nama platform** (mis. TikTok). Dropdown berjudul **"Pilih akun yang dibaca"** berisi akun terhubung (TikTok: BangBay \| Audio & Cuan @bangbayaudio / YouTube: Bang Panjul @smart-dashboard), akun aktif ada **centang biru** |
+| **Daftar chat filter per akun** | `accountChats = chats.filter(c => c.platform === account)` — daftar kiri hanya chat dari akun terpilih |
+| **Tombol New Chat baru** | Di **samping pill Belum Dibaca** (kanan header panel kiri), gaya pill biru + ikon `+`. Dropdown "Mulai chat baru" → pilih platform → buat chat baru |
+| **Panel kanan ikut akun** | Saat belum ada chat aktif, header kanan tampilkan **akun terpilih** (icon + nama + handle asli) — bukan "Nama Akun" generic |
+| **Empty state** | "Belum ada percakapan untuk akun ini. Klik New Chat untuk memulai." |
+| **startChat sinkron akun** | Membuat chat baru otomatis pindah ke akun tsb biar langsung terlihat |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render `/inbox` | ✅ New Chat (3x), akun terpilih BangBay tampil |
+| Dropdown | tertutup di SSR (client-side) — verifikasi interaktif di browser |
+
+> ℹ️ Perubahan diminta eksplisit BangBay → valid meski Inbox LOCKED.
+

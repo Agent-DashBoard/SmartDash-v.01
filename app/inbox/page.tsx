@@ -64,41 +64,54 @@ export default function InboxPage() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  const [chatOpen, setChatOpen] = useState(false);
+  // Akun yang dipilih untuk DIBACA chat-nya (TikTok/YouTube) — bukan untuk chat baru
+  const [account, setAccount] = useState<ChatPlatform>("tiktok");
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [newChatOpen, setNewChatOpen] = useState(false);
 
   const now = useClock();
   const time = now
     ? now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
     : "--:--";
 
+  // Filter: akun yang dipilih dulu, baru Semua/Belum Dibaca
+  const accountChats = chats.filter((c) => c.platform === account);
   const filtered =
-    filter === "unread" ? chats.filter((c) => c.unread) : chats;
+    filter === "unread" ? accountChats.filter((c) => c.unread) : accountChats;
   const active = chats.find((c) => c.id === activeChatId) ?? null;
 
-  function startChat(platform: ChatPlatform) {
+  function accountNameFor(platform: ChatPlatform) {
     const meta = PLATFORM_META[platform];
-    // Nama akun asli dari Integrations (Zernio)
-    const accountName =
-      platform === "tiktok"
-        ? "BangBay | Audio & Cuan"
-        : platform === "youtube"
-          ? "Bang Panjul"
-          : meta.label;
-    const accountHandle =
-      platform === "tiktok" ? "@bangbayaudio" : platform === "youtube" ? "@smart-dashboard" : "";
+    return platform === "tiktok"
+      ? "BangBay | Audio & Cuan"
+      : platform === "youtube"
+        ? "Bang Panjul"
+        : meta.label;
+  }
+
+  function accountHandleFor(platform: ChatPlatform) {
+    return platform === "tiktok"
+      ? "@bangbayaudio"
+      : platform === "youtube"
+        ? "@smart-dashboard"
+        : "";
+  }
+
+  function startChat(platform: ChatPlatform) {
     const nextId = Math.max(0, ...chats.map((c) => c.id)) + 1;
     const chat: Chat = {
       id: nextId,
       platform,
-      name: accountName,
-      handle: accountHandle,
+      name: accountNameFor(platform),
+      handle: accountHandleFor(platform),
       preview: "Percakapan baru — belum ada pesan",
       time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
       unread: false,
     };
     setChats((prev) => [...prev, chat]);
     setActiveChatId(nextId);
-    setChatOpen(false);
+    setAccount(platform); // pastikan chat baru terlihat di daftar akun tsb
+    setNewChatOpen(false);
   }
 
   function openChat(id: number) {
@@ -141,28 +154,19 @@ export default function InboxPage() {
               </div>
             </div>
 
-            {/* Tombol Chat → dropdown platform terhubung */}
+            {/* Tombol akun → dropdown PILIH AKUN yang dibaca (bukan chat baru) */}
             <div className="relative mt-2">
               <button
                 type="button"
-                onClick={() => setChatOpen((v) => !v)}
+                onClick={() => setAccountOpen((v) => !v)}
                 className="inline-flex cursor-pointer items-center gap-2 rounded-[8px] border border-[#2E3750] bg-[#232A3D] px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-[#2E3750]"
               >
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full">
+                  <PlatformImg src={PLATFORM_META[account].img} alt={PLATFORM_META[account].label} />
+                </span>
+                {PLATFORM_META[account].label}
                 <svg
-                  className="h-3.5 w-3.5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                >
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                Chat
-                <svg
-                  className={`h-3 w-3 transition-transform ${chatOpen ? "rotate-180" : ""}`}
+                  className={`h-3 w-3 transition-transform ${accountOpen ? "rotate-180" : ""}`}
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -175,23 +179,27 @@ export default function InboxPage() {
                 </svg>
               </button>
 
-              {/* Dropdown — hanya platform terhubung, item dipisah garis sejajar */}
-              {chatOpen && (
+              {/* Dropdown — pilih akun terhubung yang chat-nya mau dibaca */}
+              {accountOpen && (
                 <>
-                  <div className="fixed inset-0 z-10" onClick={() => setChatOpen(false)} />
-                  <div className="absolute left-0 top-full z-20 mt-1 w-56 overflow-hidden rounded-[8px] border border-[#2E3750] bg-[#1C222B] shadow-xl">
+                  <div className="fixed inset-0 z-10" onClick={() => setAccountOpen(false)} />
+                  <div className="absolute left-0 top-full z-20 mt-1 w-64 overflow-hidden rounded-[8px] border border-[#2E3750] bg-[#1C222B] shadow-xl">
                     <p className="border-b border-[#2E3750] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
-                      Mulai chat baru
+                      Pilih akun yang dibaca
                     </p>
                     {(Object.keys(PLATFORM_META) as ChatPlatform[])
                       .filter((key) => PLATFORM_META[key].connected)
                       .map((key, idx, arr) => {
                         const meta = PLATFORM_META[key];
+                        const selected = key === account;
                         return (
                           <button
                             key={key}
                             type="button"
-                            onClick={() => startChat(key)}
+                            onClick={() => {
+                              setAccount(key);
+                              setAccountOpen(false);
+                            }}
                             className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[#232A3D] ${
                               idx < arr.length - 1 ? "border-b border-[#2E3750]" : ""
                             }`}
@@ -204,10 +212,24 @@ export default function InboxPage() {
                             </span>
                             <span className="min-w-0 flex-1">
                               <span className="block text-[13px] font-bold text-white">{meta.label}</span>
-                              <span className="block text-[10px]" style={{ color: meta.color }}>
-                                Terhubung
+                              <span className="block truncate text-[10px] text-white/40">
+                                {accountNameFor(key)} {accountHandleFor(key)}
                               </span>
                             </span>
+                            {selected && (
+                              <svg
+                                className="h-4 w-4 shrink-0 text-[#38BDF8]"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden
+                              >
+                                <path d="M20 6 9 17l-5-5" />
+                              </svg>
+                            )}
                           </button>
                         );
                       })}
@@ -243,6 +265,71 @@ export default function InboxPage() {
                   {f.label}
                 </button>
               ))}
+
+              {/* Tombol New Chat — di samping pill Belum Dibaca */}
+              <div className="relative ml-auto">
+                <button
+                  type="button"
+                  onClick={() => setNewChatOpen((v) => !v)}
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[#38BDF8]/50 bg-[#38BDF8]/10 px-3 py-1.5 text-[12px] font-bold text-[#38BDF8] transition-colors hover:bg-[#38BDF8]/20"
+                >
+                  <svg
+                    className="h-3 w-3"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  New Chat
+                </button>
+
+                {/* Dropdown New Chat — pilih platform untuk chat baru */}
+                {newChatOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setNewChatOpen(false)} />
+                    <div className="absolute right-0 top-full z-20 mt-1 w-56 overflow-hidden rounded-[8px] border border-[#2E3750] bg-[#1C222B] shadow-xl">
+                      <p className="border-b border-[#2E3750] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40">
+                        Mulai chat baru
+                      </p>
+                      {(Object.keys(PLATFORM_META) as ChatPlatform[])
+                        .filter((key) => PLATFORM_META[key].connected)
+                        .map((key, idx, arr) => {
+                          const meta = PLATFORM_META[key];
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => startChat(key)}
+                              className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[#232A3D] ${
+                                idx < arr.length - 1 ? "border-b border-[#2E3750]" : ""
+                              }`}
+                            >
+                              <span
+                                className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                                style={{ backgroundColor: `${meta.color}1A` }}
+                              >
+                                <PlatformImg src={meta.img} alt={meta.label} />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-[13px] font-bold text-white">
+                                  {meta.label}
+                                </span>
+                                <span className="block truncate text-[10px] text-white/40">
+                                  {accountNameFor(key)} {accountHandleFor(key)}
+                                </span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Daftar chat — item dipisah border-t full-width (sejajar) */}
@@ -250,9 +337,9 @@ export default function InboxPage() {
               {filtered.length === 0 ? (
                 <div className="flex flex-1 items-center justify-center px-4 py-10 text-center">
                   <p className="text-[12px] leading-relaxed text-[#64748B]">
-                    Belum ada percakapan.
+                    Belum ada percakapan untuk akun ini.
                     <br />
-                    Klik <span className="font-bold text-white/60">Chat</span> untuk memulai.
+                    Klik <span className="font-bold text-white/60">New Chat</span> untuk memulai.
                   </p>
                 </div>
               ) : (
@@ -320,8 +407,23 @@ export default function InboxPage() {
                 </>
               ) : (
                 <>
-                  <span className="h-9 w-9 shrink-0 rounded-[8px] border border-[#2E3750] bg-[#0E1116]" />
-                  <p className="text-[13px] font-semibold text-[#94A3B8]">Nama Akun</p>
+                  <span
+                    className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
+                    style={{ backgroundColor: `${PLATFORM_META[account].color}1A` }}
+                  >
+                    <PlatformImg
+                      src={PLATFORM_META[account].img}
+                      alt={PLATFORM_META[account].label}
+                    />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-bold text-white">
+                      {accountNameFor(account)}
+                    </p>
+                    {accountHandleFor(account) && (
+                      <p className="truncate text-[11px] text-white/40">{accountHandleFor(account)}</p>
+                    )}
+                  </div>
                 </>
               )}
             </div>
@@ -340,7 +442,7 @@ export default function InboxPage() {
                 </div>
               ) : (
                 <p className="text-[12px] text-[#64748B]">
-                  Pilih percakapan dari daftar, atau klik Chat untuk memulai.
+                  Pilih percakapan dari daftar, atau klik New Chat untuk memulai.
                 </p>
               )}
             </div>
