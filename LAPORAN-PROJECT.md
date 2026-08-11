@@ -2172,3 +2172,27 @@ BangBay: **"ok mantap moka dan tolong dikunci agar tidak berubah lagi"** → des
 
 > ⚠️ Yang BOLEH berubah di masa depan tanpa unlock: hanya **data** (isi pesan, nama akun) jika API Zernio pesan aktif — layout visual tetap terkunci.
 
+---
+
+### 63. 📥 UPDATE 63 — Selasa, 11 Agustus 2026 · 13:30 SEAST — Inbox: Jam+Dot Sejajar Breadcrumb (Gaya Dashboard) + Breadcrumb Dashboard Bisa Diklik
+
+BangBay: **"untuk jam dan dot tolong sejajarkan dengan tulisan Dashboard • Inbox ukuran nya samakan dengan yg ada di dashboard. untuk tulisan Dashboard • Inbox tolong dibuat agar bisa di klik bagian tulisan Dashboard agar nanti jika di klik bisa langsung mengarah ke dashboard"**.
+
+> ℹ️ Perubahan ini diminta eksplisit BangBay → valid meski Inbox LOCKED (Update 62).
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Jam + dot sejajar breadcrumb** | Breadcrumb "Dashboard • Inbox" + jam + dot sekarang **satu baris** (`flex items-center justify-between`) — sejajar sempurna |
+| **Ukuran jam & dot = dashboard** | Jam: `text-[15px] font-bold leading-none tracking-[0.02em]` + `translate-y-[1.5px]` (sama persis `main-content.tsx`); Dot: `h-[18px] w-[18px]` dengan `animate-ping` (oranye) + `animate-pulse-dot` (hijau `#00FF2F`) — sama persis dashboard |
+| **Breadcrumb "Dashboard" bisa diklik** | `<Link href="/">Dashboard</Link>` → langsung ke halaman utama; "Inbox" tetap teks biasa; separator `•` abu |
+| **Import** | `Link` dari `next/link` |
+| **Hapus** | blok jam+dot lama di kanan header (top-aligned, ukuran kecil 7px) |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render `/inbox` | ✅ anchor `<a href="/">Dashboard</a>` ADA, `text-[15px]` + `animate-pulse-dot` + `animate-ping` terpasang |
+

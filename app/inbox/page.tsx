@@ -7,6 +7,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 // ---- Tipe ----
 type ChatPlatform = "tiktok" | "youtube" | "instagram" | "whatsapp";
@@ -96,11 +97,35 @@ export default function InboxPage() {
       <div className="flex w-full flex-1 flex-col gap-3">
         {/* ===== HEADER: judul + breadcrumb + tombol Chat (kiri) · jam + dot (kanan) ===== */}
         <header className="flex items-start justify-between gap-2">
-          <div>
+          <div className="min-w-0 flex-1">
             <h1 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.21] text-white">
               Inbox
             </h1>
-            <p className="text-[13px] text-[#94A3B8]">Dashboard • Inbox</p>
+
+            {/* Breadcrumb + jam + dot — SATU BARIS sejajar (gaya dashboard) */}
+            <div className="mt-0.5 flex items-center justify-between gap-3">
+              <p className="text-[13px] text-[#94A3B8]">
+                <Link
+                  href="/"
+                  className="cursor-pointer transition-colors hover:text-white"
+                >
+                  Dashboard
+                </Link>
+                <span className="mx-1 text-white/30">•</span>
+                <span className="text-white/60">Inbox</span>
+              </p>
+
+              {/* Jam + dot — ukuran & gaya SAMA dengan dashboard */}
+              <div className="flex shrink-0 items-center gap-[10px]">
+                <span className="translate-y-[1.5px] text-[15px] font-bold leading-none tracking-[0.02em] text-white">
+                  {time}
+                </span>
+                <span className="relative flex h-[18px] w-[18px] shrink-0 items-center justify-center">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FF6B00] opacity-20" />
+                  <span className="relative inline-flex h-[18px] w-[18px] animate-pulse-dot rounded-full bg-[#00FF2F]" />
+                </span>
+              </div>
+            </div>
 
             {/* Tombol Chat → dropdown platform terhubung */}
             <div className="relative mt-2">
@@ -176,11 +201,6 @@ export default function InboxPage() {
                 </>
               )}
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 text-[13px] font-medium text-white/60">
-            <span>{time}</span>
-            <span className="h-[7px] w-[7px] rounded-full bg-[#22C55E]" />
           </div>
         </header>
 
