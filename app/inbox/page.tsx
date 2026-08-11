@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 // ---- Tipe ----
 type ChatPlatform = "tiktok" | "youtube" | "instagram" | "whatsapp";
@@ -24,13 +25,26 @@ type Chat = {
 
 const PLATFORM_META: Record<
   ChatPlatform,
-  { label: string; icon: string; color: string; connected: boolean }
+  { label: string; icon: string; img: string; color: string; connected: boolean }
 > = {
-  tiktok: { label: "TikTok", icon: "🎵", color: "#00F2EA", connected: true },
-  youtube: { label: "YouTube", icon: "▶️", color: "#FF0000", connected: true },
-  instagram: { label: "Instagram", icon: "📸", color: "#E1306C", connected: false },
-  whatsapp: { label: "WhatsApp", icon: "💬", color: "#25D366", connected: false },
+  tiktok: { label: "TikTok", icon: "🎵", img: "/icons/tiktok.png", color: "#00F2EA", connected: true },
+  youtube: { label: "YouTube", icon: "▶️", img: "/icons/youtube.png", color: "#FF0000", connected: true },
+  instagram: { label: "Instagram", icon: "📸", img: "/icons/instagram.png", color: "#E1306C", connected: false },
+  whatsapp: { label: "WhatsApp", icon: "💬", img: "/icons/whatsapp.png", color: "#25D366", connected: false },
 };
+
+// ---- Helper: icon platform dari public/icons (PNG asli) ----
+function PlatformImg({ src, alt }: { src: string; alt: string }) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={24}
+      height={24}
+      className="h-[70%] w-[70%] object-contain"
+    />
+  );
+}
 
 // ---- Hook jam (pola sama dengan dashboard) ----
 function useClock() {
@@ -183,10 +197,10 @@ export default function InboxPage() {
                             }`}
                           >
                             <span
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px]"
+                              className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
                               style={{ backgroundColor: `${meta.color}1A` }}
                             >
-                              {meta.icon}
+                              <PlatformImg src={meta.img} alt={meta.label} />
                             </span>
                             <span className="min-w-0 flex-1">
                               <span className="block text-[13px] font-bold text-white">{meta.label}</span>
@@ -254,10 +268,10 @@ export default function InboxPage() {
                       } ${idx > 0 ? "border-t border-[#2E3750]" : ""}`}
                     >
                       <span
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[16px]"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
                         style={{ backgroundColor: `${meta.color}1A` }}
                       >
-                        {meta.icon}
+                        <PlatformImg src={meta.img} alt={meta.label} />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center justify-between gap-2">
@@ -289,10 +303,13 @@ export default function InboxPage() {
               {active ? (
                 <>
                   <span
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[16px]"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full"
                     style={{ backgroundColor: `${PLATFORM_META[active.platform].color}1A` }}
                   >
-                    {PLATFORM_META[active.platform].icon}
+                    <PlatformImg
+                      src={PLATFORM_META[active.platform].img}
+                      alt={PLATFORM_META[active.platform].label}
+                    />
                   </span>
                   <div className="min-w-0">
                     <p className="truncate text-[13px] font-bold text-white">{active.name}</p>

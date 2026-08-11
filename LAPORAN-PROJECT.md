@@ -2196,3 +2196,27 @@ BangBay: **"untuk jam dan dot tolong sejajarkan dengan tulisan Dashboard • Inb
 | `npm run build` | ✅ exit 0 |
 | Render `/inbox` | ✅ anchor `<a href="/">Dashboard</a>` ADA, `text-[15px]` + `animate-pulse-dot` + `animate-ping` terpasang |
 
+---
+
+### 64. 🖼️ UPDATE 64 — Selasa, 11 Agustus 2026 · 13:45 SEAST — Inbox: Icon Emoji → PNG Asli dari public/icons
+
+BangBay: **"oya moka icon tolong sesuaikan dan aku sudah siapkan di D:\SmartDash\public\icons"** → ganti icon emoji (🎵▶️📸💬) di Inbox dengan PNG asli dari `public/icons/`.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **PLATFORM_META + field `img`** | tiktok → `/icons/tiktok.png`, youtube → `/icons/youtube.png`, instagram → `/icons/instagram.png`, whatsapp → `/icons/whatsapp.png` |
+| **Helper `PlatformImg`** | `<Image>` dari `next/image` (width/height 24) + `object-contain`, ukuran 70% dari parent biar ada padding di lingkaran bg |
+| **3 tempat render diganti** | Dropdown Chat (h-8), daftar chat avatar (h-9), header Nama Akun (h-10) — semua `overflow-hidden rounded-full` + bg warna platform tetap |
+| **Fix lint** | `<img>` → `<Image>` (aturan `no-img-element` Next) — lint 0/0 |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Icon PNG via HTTP | ✅ tiktok/youtube/instagram/whatsapp.png semua 200 image/png |
+| Sisa emoji di inbox | ✅ bersih (tidak ada `meta.icon` tersisa) |
+
+> ℹ️ Perubahan diminta eksplisit BangBay → valid meski Inbox LOCKED. Icon muncul saat dropdown dibuka / chat dipilih (client-side, tidak terlihat di SSR).
+
