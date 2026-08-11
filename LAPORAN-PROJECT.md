@@ -2022,3 +2022,29 @@ BangBay: **"buatkan 1 menu baru di bawah social dengan nama Inbox"**.
 | `npm run build` | ✅ exit 0 |
 | HTTP `/inbox` | ✅ 200, render lengkap (Total Pesan, Belum Dibaca, Balas pesan, TikTok/YouTube badge) |
 
+---
+
+### 57. 📥 UPDATE 57 — Selasa, 11 Agustus 2026 · 12:20 SEAST — Inbox Redesign: Chat Dropdown + Layout Referensi
+
+BangBay kirim screenshot referensi inbox + **"isi dari inbox nya seperti ini moka. kotak Chat itu dibuat dropdown"** — rebuild total `app/inbox/page.tsx` mengikuti layout persis (source of truth = gambar).
+
+#### 🛠️ Layout baru (persis referensi)
+| Bagian | Deskripsi |
+|---|---|
+| **Header** | "Inbox" besar + breadcrumb `Dashboard • Inbox` + jam + dot hijau |
+| **Tombol Chat** | Rounded dark button di bawah breadcrumb → **dropdown** (ikon chat + chevron, klik buka/tutup, overlay di luar untuk tutup) |
+| **Dropdown** | "Mulai chat baru" — 4 platform (TikTok/YouTube terhubung, IG/WA belum) · klik → buat percakapan baru + aktif |
+| **Panel kiri** | Filter pills **Semua / Belum Dibaca** (outlined) + daftar chat (empty state "Belum ada percakapan") |
+| **Panel kanan** | Header bar **Nama Akun** + avatar placeholder (persis referensi) · area isi pesan kosong |
+
+#### ⚠️ Catatan jujur
+- Data pesan asli Zernio belum aktif → daftar **mulai kosong** (empty state persis screenshot).
+- Klik platform di dropdown → percakapan baru muncul di daftar kiri (feedback nyata).
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| `npm run lint` | ✅ 0 error / 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render `/inbox` | ✅ Chat, Semua, Belum Dibaca, Nama Akun, empty state semua tampil |
+
