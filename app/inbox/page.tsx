@@ -598,6 +598,8 @@ function AgentSessionsView() {
   const [agentMessages, setAgentMessages] = useState<Msg[]>([AGENT_INITIAL_MSG]);
   const [agentInput, setAgentInput] = useState("");
   const [agentLoading, setAgentLoading] = useState(false);
+  // Search sesi — mirip GUI Hermes "Search sessions..."
+  const [agentSearch, setAgentSearch] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -653,8 +655,13 @@ function AgentSessionsView() {
     }
   }
 
-  const pinnedSessions = agentSessions.filter((s) => s.pinned);
-  const otherSessions = agentSessions.filter((s) => !s.pinned);
+  // Filter search — mirip GUI Hermes: cari di title
+  const searchQ = agentSearch.trim().toLowerCase();
+  const allSessions = agentSessions.filter(
+    (s) => !searchQ || s.title.toLowerCase().includes(searchQ)
+  );
+  const shownPinned = allSessions.filter((s) => s.pinned);
+  const shownOthers = allSessions.filter((s) => !s.pinned);
 
   function handleNewSession() {
     const nextId = Math.max(0, ...agentSessions.map((s) => s.id)) + 1;
@@ -663,70 +670,127 @@ function AgentSessionsView() {
     setAgentMessages([AGENT_INITIAL_MSG]);
   }
 
+  function togglePin(id: number) {
+    setAgentSessions((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, pinned: !s.pinned } : s))
+    );
+  }
+
   const activeSessionData = agentSessions.find((s) => s.id === agentActiveSession);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 lg:flex-row">
-      {/* ===== Sidebar kiri: New Session + PINNED + SESSIONS ===== */}
+      {/* ===== Sidebar kiri: mirip GUI Hermes — ikon atas, search, PINNED, SESSIONS ===== */}
       <section
         className="flex min-h-[320px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#0E1116]"
         style={{ width: AGENT_SIDEBAR_W }}
       >
-        {/* New Session — oranye (sesuai gambar referensi) */}
-        <div className="border-b border-[#2E3750] p-3">
+        {/* Baris ikon atas — mirip Hermes: New session / Capabilities / Messaging / Artifacts */}
+        <div className="flex items-center gap-0.5 border-b border-[#2E3750] px-2 py-1.5">
           <button
             type="button"
             onClick={handleNewSession}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] bg-[#F97316] px-4 py-2 text-[12px] font-bold text-white transition-colors hover:bg-[#EA580C]"
+            title="New session (Ctrl+N)"
+            aria-label="New session"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-[#94A3B8] transition-colors hover:bg-[#232A3D] hover:text-white"
           >
-            <svg
-              className="h-3 w-3"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              <path d="M12 5v14M5 12h14" />
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <path d="M14 14h7v7h-7z" />
             </svg>
-            New Session
+          </button>
+          <button
+            type="button"
+            title="Capabilities"
+            aria-label="Capabilities"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-[#94A3B8] transition-colors hover:bg-[#232A3D] hover:text-white"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 3l1.9 5.8L20 10l-6.1 1.2L12 17l-1.9-5.8L4 10l6.1-1.2z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            title="Messaging"
+            aria-label="Messaging"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-[#94A3B8] transition-colors hover:bg-[#232A3D] hover:text-white"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            title="Artifacts"
+            aria-label="Artifacts"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-[#94A3B8] transition-colors hover:bg-[#232A3D] hover:text-white"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
           </button>
         </div>
 
-        {/* Daftar sesi — PINNED di atas, SESSIONS di bawah */}
-        <div className="flex-1 overflow-y-auto px-2 pb-2">
-          {pinnedSessions.length > 0 && (
+        {/* Search sessions — mirip GUI Hermes */}
+        <div className="px-2 pb-1.5 pt-2">
+          <div className="relative">
+            <svg
+              className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#64748B]"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              value={agentSearch}
+              onChange={(e) => setAgentSearch(e.target.value)}
+              placeholder="Search sessions..."
+              className="h-7 w-full rounded-md border border-[#2E3750] bg-[#0E1116] pl-7 pr-2 text-[12px] text-white outline-none placeholder:text-[#64748B] focus:border-[#38BDF8]/60"
+            />
+          </div>
+        </div>
+
+        {/* Daftar sesi — PINNED di atas, SESSIONS di bawah (spacing rapat mirip Hermes) */}
+        <div className="flex-1 overflow-y-auto px-1.5 pb-2">
+          {shownPinned.length > 0 && (
             <>
-              <p className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
+              <p className="px-1.5 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-white/40">
                 PINNED
               </p>
-              {pinnedSessions.map((s) => (
+              {shownPinned.map((s) => (
                 <AgentSessionItem
                   key={s.id}
                   s={s}
                   active={agentActiveSession === s.id}
                   onSelect={() => setAgentActiveSession(s.id)}
+                  onTogglePin={() => togglePin(s.id)}
                 />
               ))}
+              {/* Hint pin — persis GUI Hermes */}
+              <p className="px-1.5 pb-1 pt-0.5 text-[10px] italic text-[#64748B]">
+                Shift-click a chat to pin
+              </p>
             </>
           )}
 
-          <p className={pinnedSessions.length > 0 ? "mt-1 px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40" : "px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40"}>
+          <p className="px-1.5 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-white/40">
             SESSIONS
           </p>
-          {otherSessions.length === 0 ? (
-            <p className="px-2 py-4 text-center text-[11px] text-[#64748B]">
-              Tidak ada sesi. Klik New Session untuk memulai.
+          {shownOthers.length === 0 ? (
+            <p className="px-2 py-3 text-center text-[11px] text-[#64748B]">
+              Tidak ada sesi. Klik ikon New Session untuk memulai.
             </p>
           ) : (
-            otherSessions.map((s) => (
+            shownOthers.map((s) => (
               <AgentSessionItem
                 key={s.id}
                 s={s}
                 active={agentActiveSession === s.id}
                 onSelect={() => setAgentActiveSession(s.id)}
+                onTogglePin={() => togglePin(s.id)}
               />
             ))
           )}
@@ -834,22 +898,58 @@ function AgentSessionItem({
   s,
   active,
   onSelect,
+  onTogglePin,
 }: {
   s: AgentSession;
   active: boolean;
   onSelect: () => void;
+  onTogglePin: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
-      className={`block w-full truncate rounded-lg px-3 py-2 text-left text-[13px] transition-colors ${
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      className={`group flex w-full cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-left transition-colors ${
         active
-          ? "bg-[#38BDF8]/25 font-semibold text-white"
+          ? "bg-[#38BDF8]/20 font-semibold text-white"
           : "text-[#94A3B8] hover:bg-[#232A3D] hover:text-[#E2E8F0]"
       }`}
     >
-      {s.title}
-    </button>
+      <span className="min-w-0 flex-1 truncate text-[12px]">{s.title}</span>
+      {/* Ikon pin — muncul hover / sudah dipin (div role=button, hindari nested button) */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={(e) => {
+          e.stopPropagation();
+          onTogglePin();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            e.stopPropagation();
+            onTogglePin();
+          }
+        }}
+        title={s.pinned ? "Unpin" : "Pin"}
+        aria-label={s.pinned ? "Unpin" : "Pin"}
+        className={`flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded text-[10px] transition-opacity ${
+          s.pinned
+            ? "opacity-100 text-[#38BDF8]"
+            : "opacity-0 hover:bg-[#2A3347] hover:text-white group-hover:opacity-100"
+        }`}
+      >
+        <svg className="h-3 w-3" viewBox="0 0 24 24" fill={s.pinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M12 17V3m0 0l-4 4m4-4 4 4" />
+        </svg>
+      </div>
+    </div>
   );
 }

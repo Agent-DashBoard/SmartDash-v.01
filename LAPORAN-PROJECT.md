@@ -2456,3 +2456,28 @@ BangBay: **"Hapus dummy"** (referensi screenshot item chat TikTok dummy).
 | `npm run build` | ✅ exit 0 |
 | Render SSR `/inbox` | ✅ "Nah ini dia contoh chat": **False**, "Bagus Bang": **False**, "Belum ada percakapan": **True** |
 
+---
+
+### 74. 🤖 UPDATE 74 — Rabu, 12 Agustus 2026 · 06:15 SEAST — Agent Mode: Full Mirror GUI Hermes
+
+BangBay: **"sekarang kita poles poles untuk bagian Agent nya... agent yg di ingin di buat seperti itu juga"** — referensi GUI Hermes Desktop yang sedang dipakai (screenshot langsung).
+
+Pilihan Bang: **Full mirror — baris ikon + search + PINNED hint + spacing Hermes**.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx` → `AgentSessionsView`)
+| Perubahan | Detail |
+|---|---|
+| **Baris ikon atas** | Ganti tombol New Session oranye full-width → 4 ikon mirip Hermes: **New session** (grid), **Capabilities** (spark), **Messaging** (chat bubble), **Artifacts** (layers). Hover state gelap |
+| **Search sessions** | Input pencarian di bawah ikon — filter sesi realtime (`agentSearch` → filter title) |
+| **PINNED hint** | "Shift-click a chat to pin" italic kecil di bawah PINNED — persis GUI Hermes |
+| **Spacing rapat** | `px-1.5 py-1` compact (bukan `py-2.5` sebelumnya) — mirip Hermes |
+| **Item sesi** | `AgentSessionItem` → `<div role="button">` + **ikon pin** (muncul saat hover, biru saat pinned) + toggle pin realtime. Item aktif highlight `#38BDF8]/20` |
+| **Hindari nested button** | Pin icon pakai `<div role="button">` di dalam wrapper div — aman hydration |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| Inbox lint | ✅ 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Interaksi | pilih Agent → sidebar kiri: ikon New Session klikable, search filter, PINNED (hint pin), SESSIONS, item pin toggle |
+
