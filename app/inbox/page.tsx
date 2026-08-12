@@ -46,7 +46,6 @@ type Chat = {
   preview: string;
   time: string;
   unread: boolean;
-  pinned?: boolean; // ← jika true, muncul di paling atas (di atas SESSIONS)
 };
 
 const PLATFORM_META: Record<
@@ -101,10 +100,9 @@ export default function InboxPage() {
       platform: "tiktok",
       name: "BangBay | Audio & Cuan",
       handle: "@bangbayaudio",
-      preview: "Nah ini dia contoh chat yang dipin...",
+      preview: "Nah ini dia contoh chat...",
       time: "22:45",
       unread: true,
-      pinned: true,
     },
     {
       id: 2,
@@ -114,7 +112,6 @@ export default function InboxPage() {
       preview: "Bagus Bang, lanjutkan 👍",
       time: "22:30",
       unread: false,
-      pinned: false,
     },
   ]);
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
@@ -130,13 +127,10 @@ export default function InboxPage() {
     : "--:--";
 
   // Filter: akun yang dipilih dulu, baru Semua/Belum Dibaca.
-  // Urutan: pin dulu (paling atas), baru remaining — mirip GUI Hermes.
+  // PINNED/SESSIONS khusus mode AGENT — daftar sosmed urut natural.
   const accountChats = chats.filter((c) => c.platform === account);
-  const withFilter =
+  const ordered =
     filter === "unread" ? accountChats.filter((c) => c.unread) : accountChats;
-  const pinned = withFilter.filter((c) => c.pinned);
-  const regular = withFilter.filter((c) => !c.pinned);
-  const ordered = [...pinned, ...regular];
   const filtered = ordered;
   const active = chats.find((c) => c.id === activeChatId) ?? null;
 
@@ -177,12 +171,6 @@ export default function InboxPage() {
   function openChat(id: number) {
     setActiveChatId(id);
     setChats((prev) => prev.map((c) => (c.id === id ? { ...c, unread: false } : c)));
-  }
-
-  function togglePin(id: number) {
-    setChats((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, pinned: !c.pinned } : c))
-    );
   }
 
   return (
@@ -448,66 +436,29 @@ export default function InboxPage() {
               </div>
             </div>
 
-            {/* Daftar chat — PINNED di atas (sejajar), SESSIONS di bawah. Gap kecil antar section. */}
+            {/* Daftar chat sosmed — urut natural (PINNED/SESSIONS khusus Agent) */}
             <div className="flex flex-1 flex-col overflow-y-auto">
-              {/* PINNED section */}
-              {pinned.length > 0 && (
-                <>
-                  <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
-                    PINNED
-                  </p>
-                  {pinned.map((c, idx) => (
-                    <ChatItem
-                      key={c.id}
-                      c={c}
-                      meta={PLATFORM_META[c.platform]}
-                      active={activeChatId === c.id}
-                      onOpen={() => openChat(c.id)}
-                      onTogglePin={() => togglePin(c.id)}
-                      showBorderTop={idx > 0}
-                    />
-                  ))}
-                  <div className="h-px bg-[#2E3750]" />
-                </>
-              )}
-
-              {/* SESSIONS section — header selalu muncul jika ada pinned atau regular */}
-              {(pinned.length > 0 || regular.length > 0) && (
-                <p className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/40">
-                  SESSIONS
-                </p>
-              )}
-              {regular.length === 0 ? (
-                <div className="px-3 py-8 text-center">
+              {filtered.length === 0 ? (
+                <div className="flex flex-1 items-center justify-center px-4 py-10 text-center">
                   <p className="text-[12px] leading-relaxed text-[#64748B]">
-                    Tidak ada percakapan lain.
+                    {filter === "unread"
+                      ? "Tidak ada chat belum dibaca untuk akun ini."
+                      : "Belum ada percakapan untuk akun ini."}
                     <br />
                     Klik <span className="font-bold text-white/60">New Chat</span> untuk memulai.
                   </p>
                 </div>
               ) : (
-                regular.map((c, idx) => (
+                filtered.map((c, idx) => (
                   <ChatItem
                     key={c.id}
                     c={c}
                     meta={PLATFORM_META[c.platform]}
                     active={activeChatId === c.id}
                     onOpen={() => openChat(c.id)}
-                    onTogglePin={() => togglePin(c.id)}
                     showBorderTop={idx > 0}
                   />
                 ))
-              )}
-
-              {/* Empty state penuh bila tidak ada chat sama sekali */}
-              {filtered.length === 0 && pinned.length === 0 && regular.length === 0 && (
-                <div className="flex flex-1 items-center justify-center px-4 py-10 text-center">
-                  <p className="text-[12px] leading-relaxed text-[#64748B]">
-                    Belum ada percakapan untuk akun ini.
-                    <br />
-                    Klik <span className="font-bold text-white/60">New Chat</span> untuk memulai.
-                  </p>
-                </div>
               )}
             </div>
           </section>
@@ -583,26 +534,31 @@ export default function InboxPage() {
   );
 }
 
-// ---- Komponen item chat (dipakai di PINNED & SESSIONS) ----
+// ---- Komponen item chat sosmed (PINNED/SESSIONS khusus Agent, bukan di sini) ----
 function ChatItem({
   c,
   meta,
   active,
   onOpen,
-  onTogglePin,
   showBorderTop,
 }: {
   c: Chat;
   meta: { label: string; img: string; color: string; connected: boolean };
   active: boolean;
   onOpen: () => void;
-  onTogglePin: () => void;
   showBorderTop: boolean;
 }) {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
       className={`group relative flex w-full cursor-pointer items-start gap-2.5 px-3 py-3 text-left transition-colors ${
         active ? "bg-[#232A3D]" : "hover:bg-[#232A3D]/60"
       } ${showBorderTop ? "border-t border-[#2E3750]" : ""}`}
@@ -629,33 +585,7 @@ function ChatItem({
         </span>
         <span className="mt-1 block truncate text-[11px] text-white/50">{c.preview}</span>
       </span>
-
-      {/* Ikon pin — muncul saat hover / sudah dipin */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onTogglePin();
-        }}
-        className={`absolute top-1/2 -mt-2 right-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[9px] opacity-0 transition-all group-hover:opacity-100 ${
-          c.pinned ? "opacity-100 text-[#38BDF8]" : "text-white/30 hover:bg-[#2E3750]"
-        }`}
-        title={c.pinned ? "Lepas pin" : "Pin"}
-      >
-        <svg
-          className="h-3 w-3"
-          viewBox="0 0 24 24"
-          fill={c.pinned ? "currentColor" : "none"}
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
-        >
-          <path d="M12 17V3m0 0l-4 4m4-4 4 4" />
-        </svg>
-      </button>
-    </button>
+    </div>
   );
 }
 

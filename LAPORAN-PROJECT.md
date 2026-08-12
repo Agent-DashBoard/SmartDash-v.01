@@ -2411,3 +2411,28 @@ BangBay: **"In HTML, `<button> cannot be a descendant of <button>`"** — ini hy
 
 Perbaikan meminimalisasi `<button>` nested dan memperkuat layout Agent session yang sudah ada sebelumnya.
 
+---
+
+### 72. 📥 UPDATE 72 — Selasa, 11 Agustus 2026 · 18:10 SEAST — Inbox: Hapus PINNED/SESSIONS dari Sosmed (Khusus Agent)
+
+BangBay: **"untuk PINNED dan SESSION tidak untuk sosial media jadi kalo ada tolong di hapus. justru PINNED dan SESSION itu di peruntukan untuk Agent saja"**.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Daftar chat sosmed** | Header **PINNED** & **SESSIONS** dihapus total dari daftar chat TikTok/YouTube — urut natural apa adanya |
+| **Logika urut** | `pinned`/`regular` split dihapus → `ordered = accountChats.filter(...)` langsung |
+| **Field `pinned?` di `Chat` type** | Dihapus — `pinned` hanya ada di `AgentSession` |
+| **Dummy data sosmed** | Field `pinned` dihapus dari 2 chat contoh |
+| **`togglePin` sosmed** | Function dihapus (tidak dipakai lagi) |
+| **`ChatItem`** | Wrapper `<button>` → `<div role="button">` + `onKeyDown` (Enter/Space) — fix hydration + ikon pin button dihapus (pin khusus Agent) |
+| **`AgentSessionsView`** | Tetap pakai **PINNED** (atas) + **SESSIONS** (bawah) — ini lokasi yang benar, khusus mode Agent |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| Inbox lint | ✅ 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render SSR `/inbox` | ✅ PINNED: 0x, SESSIONS: 0x (sosmed default account=tiktok tidak render section Agent) |
+| Hydration | ✅ tidak ada `<button>` nested (ChatItem div role button) |
+
