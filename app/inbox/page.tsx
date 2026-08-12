@@ -93,27 +93,8 @@ function useClock() {
 }
 
 export default function InboxPage() {
-  const [chats, setChats] = useState<Chat[]>([
-    // Dummy agar UI nyampe — biar gak buta kosong
-    {
-      id: 1,
-      platform: "tiktok",
-      name: "BangBay | Audio & Cuan",
-      handle: "@bangbayaudio",
-      preview: "Nah ini dia contoh chat...",
-      time: "22:45",
-      unread: true,
-    },
-    {
-      id: 2,
-      platform: "youtube",
-      name: "Bang Panjul",
-      handle: "@smart-dashboard",
-      preview: "Bagus Bang, lanjutkan 👍",
-      time: "22:30",
-      unread: false,
-    },
-  ]);
+  // Chat sosmed mulai KOSONG — diisi lewat tombol New Chat (belum ada API DM Zernio)
+  const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   // Akun yang dipilih untuk DIBACA chat-nya (TikTok/YouTube/Agent) — bukan untuk chat baru

@@ -2436,3 +2436,23 @@ BangBay: **"untuk PINNED dan SESSION tidak untuk sosial media jadi kalo ada tolo
 | Render SSR `/inbox` | ✅ PINNED: 0x, SESSIONS: 0x (sosmed default account=tiktok tidak render section Agent) |
 | Hydration | ✅ tidak ada `<button>` nested (ChatItem div role button) |
 
+---
+
+### 73. 🗑️ UPDATE 73 — Rabu, 12 Agustus 2026 · 06:00 SEAST — Inbox: Hapus Dummy Chat Sosmed
+
+BangBay: **"Hapus dummy"** (referensi screenshot item chat TikTok dummy).
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx`)
+| Perubahan | Detail |
+|---|---|
+| **Dummy data** | 2 chat contoh (TikTok + YouTube) **dihapus** — `useState<Chat[]>([])` mulai kosong |
+| **Empty state** | Daftar chat sosmed sekarang tampilkan "Belum ada percakapan untuk akun ini. Klik New Chat untuk memulai." |
+| **Catatan** | Chat baru hanya bisa muncul lewat tombol **New Chat** (belum ada API DM Zernio) |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| Inbox lint | ✅ 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Render SSR `/inbox` | ✅ "Nah ini dia contoh chat": **False**, "Bagus Bang": **False**, "Belum ada percakapan": **True** |
+
