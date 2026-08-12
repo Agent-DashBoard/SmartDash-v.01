@@ -2481,3 +2481,26 @@ Pilihan Bang: **Full mirror — baris ikon + search + PINNED hint + spacing Herm
 | `npm run build` | ✅ exit 0 |
 | Interaksi | pilih Agent → sidebar kiri: ikon New Session klikable, search filter, PINNED (hint pin), SESSIONS, item pin toggle |
 
+---
+
+### 75. ⋮ UPDATE 75 — Rabu, 12 Agustus 2026 · 06:30 SEAST — Agent Mode: Dropdown aksi sesi (Pin/Rename/Delete)
+
+BangBay: **"harus nya jangan ikon pin biru tapi lebih bagus lagi titik tiga dan isinya Pin, Rename dan delete"** — ganti ikon pin → dropdown menu aksi.
+
+#### 🛠️ Yang diubah (`app/inbox/page.tsx` → `AgentSessionsView`/`AgentSessionItem`)
+| Perubahan | Detail |
+|---|---|
+| **Icon ganti ke ⋮ (titik tiga)** | Hover di item sesi — muncul 3 titik vertikal abu-abu → biru saat hover |
+| **Dropdown menu: Pin / Rename / Delete** | Klik titik tiga → muncul dropdown (mirip GUI Hermes): 📌 **Pin** (toggle), ✏️ **Rename** (prompt input), 🗑️ **Delete** (merah) |
+| **Pin/Rename/Delete handler** | `togglePin`, `renameSession` (window.prompt), `deleteSession` (reset ke sesi berikutnya) |
+| **Hindari nested button** | Semua aksi pakai `<div role="button">` / `<button>` polos — tidak ada button di dalam button |
+| **PINNED/SESSIONS khusus Agent** | Header & hint "Shift-click a chat to pin" tetap di sidebar Agent, **hilang dari daftar sosmed** |
+
+#### Verifikasi
+| Check | Hasil |
+|---|---|
+| Inbox lint | ✅ 0 warning |
+| `npm run build` | ✅ exit 0 |
+| Sosmed list | ✅ tidak ada PINNED/SESSIONS text |
+| Agent sidebar | ✅ ikon baris (New session/Capabilities/Messaging/Artifacts), search, dropdown ⋮ Pin/Rename/Delete |
+

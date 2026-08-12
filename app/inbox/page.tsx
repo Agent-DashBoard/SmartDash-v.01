@@ -676,6 +676,24 @@ function AgentSessionsView() {
     );
   }
 
+  function renameSession(id: number) {
+    const newTitle = window.prompt("Masukkan judul baru:", "");
+    if (newTitle !== null) {
+      setAgentSessions((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, title: newTitle.trim() } : s))
+      );
+    }
+  }
+
+  function deleteSession(id: number) {
+    setAgentSessions((prev) => prev.filter((s) => s.id !== id));
+    if (agentActiveSession === id) {
+      const remaining = agentSessions.filter((s) => s.id !== id);
+      setAgentActiveSession(remaining[0]?.id ?? 0);
+      setAgentMessages([AGENT_INITIAL_MSG]);
+    }
+  }
+
   const activeSessionData = agentSessions.find((s) => s.id === agentActiveSession);
 
   return (
@@ -766,7 +784,9 @@ function AgentSessionsView() {
                   s={s}
                   active={agentActiveSession === s.id}
                   onSelect={() => setAgentActiveSession(s.id)}
-                  onTogglePin={() => togglePin(s.id)}
+                  onPin={() => togglePin(s.id)}
+                  onRename={() => renameSession(s.id)}
+                  onDelete={() => deleteSession(s.id)}
                 />
               ))}
               {/* Hint pin — persis GUI Hermes */}
@@ -790,7 +810,9 @@ function AgentSessionsView() {
                 s={s}
                 active={agentActiveSession === s.id}
                 onSelect={() => setAgentActiveSession(s.id)}
-                onTogglePin={() => togglePin(s.id)}
+                onPin={() => togglePin(s.id)}
+                onRename={() => renameSession(s.id)}
+                onDelete={() => deleteSession(s.id)}
               />
             ))
           )}
@@ -893,17 +915,21 @@ function AgentSessionsView() {
   );
 }
 
-// ---- Item sesi di sidebar Agent (pola sama dengan apps/page.tsx) ----
+// ---- Item sesi di sidebar Agent (mirip GUI Hermes) ----
 function AgentSessionItem({
   s,
   active,
   onSelect,
-  onTogglePin,
+  onPin,
+  onRename,
+  onDelete,
 }: {
   s: AgentSession;
   active: boolean;
   onSelect: () => void;
-  onTogglePin: () => void;
+  onPin: () => void;
+  onRename: () => void;
+  onDelete: () => void;
 }) {
   return (
     <div
@@ -923,33 +949,95 @@ function AgentSessionItem({
       }`}
     >
       <span className="min-w-0 flex-1 truncate text-[12px]">{s.title}</span>
-      {/* Ikon pin — muncul hover / sudah dipin (div role=button, hindari nested button) */}
+      {/* Titik tiga — aksi Pin/Rename/Delete saat hover (mirip GUI Hermes) */}
+      <SessionActions
+        s={s}
+        active={active}
+        onPin={onPin}
+        onRename={onRename}
+        onDelete={onDelete}
+      />
+    </div>
+  );
+}
+
+// ---- Dropdown aksi item sesi: Pin / Rename / Delete (di bawah) ----
+function SessionActions({
+  s,
+  active,
+  onPin,
+  onRename,
+  onDelete,
+}: {
+  s: AgentSession;
+  active: boolean;
+  onPin: () => void;
+  onRename: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className={`relative shrink-0 opacity-0 transition-opacity group-hover:opacity-100 ${active ? "opacity-100" : ""}`}
+      onClick={(e) => e.stopPropagation()}
+    >
       <div
         role="button"
         tabIndex={0}
-        onClick={(e) => {
-          e.stopPropagation();
-          onTogglePin();
-        }}
+        onClick={() => setOpen(!open)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            e.stopPropagation();
-            onTogglePin();
+            setOpen(!open);
           }
         }}
-        title={s.pinned ? "Unpin" : "Pin"}
-        aria-label={s.pinned ? "Unpin" : "Pin"}
-        className={`flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded text-[10px] transition-opacity ${
-          s.pinned
-            ? "opacity-100 text-[#38BDF8]"
-            : "opacity-0 hover:bg-[#2A3347] hover:text-white group-hover:opacity-100"
-        }`}
+        aria-label="More actions (⋯)"
+        className="flex h-5 w-5 cursor-pointer items-center justify-center rounded text-[#64748B] hover:bg-[#2A3347] hover:text-white"
       >
-        <svg className="h-3 w-3" viewBox="0 0 24 24" fill={s.pinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M12 17V3m0 0l-4 4m4-4 4 4" />
+        <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <circle cx="5" cy="12" r="1.5" />
+          <circle cx="12" cy="12" r="1.5" />
+          <circle cx="19" cy="12" r="1.5" />
         </svg>
       </div>
+
+      {open && (
+        <div
+          className="absolute top-full right-0 mt-1 w-40 overflow-hidden rounded-md border border-[#2E3750] bg-[#1C222B] text-[11px] shadow-lg"
+          onMouseLeave={() => setOpen(false)}
+        >
+          <MenuAction label={s.pinned ? "Unpin" : "Pin"} icon="📌" onClick={() => { onPin(); setOpen(false); }} />
+          <MenuAction label="Rename" icon="✏️" onClick={() => { onRename(); setOpen(false); }} />
+          <MenuAction label="Delete" icon="🗑️" onClick={() => { onDelete(); setOpen(false); }} danger />
+        </div>
+      )}
     </div>
+  );
+}
+
+// ---- Item menu kecil di dropdown aksi sesi ----
+function MenuAction({
+  label,
+  icon,
+  onClick,
+  danger,
+}: {
+  label: string;
+  icon: string;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-2 px-2 py-1.5 text-left transition-colors ${
+        danger ? "text-[#F87171] hover:bg-[#2A3347]" : "text-[#CBD5E1] hover:bg-[#2A3347]"
+      }`}
+    >
+      <span className="w-4 text-center">{icon}</span>
+      {label}
+    </button>
   );
 }
