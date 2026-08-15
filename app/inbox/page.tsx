@@ -985,15 +985,19 @@ function SessionActions({
       <div
         role="button"
         tabIndex={0}
-        onClick={() => setOpen(!open)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen(!open);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
+            e.stopPropagation();
             setOpen(!open);
           }
         }}
         aria-label="More actions (⋯)"
-        className="flex h-5 w-5 cursor-pointer items-center justify-center rounded text-[#64748B] hover:bg-[#2A3347] hover:text-white"
+        className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded text-[#64748B] hover:bg-[#2A3347] hover:text-white"
       >
         <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <circle cx="5" cy="12" r="1.5" />
@@ -1004,7 +1008,7 @@ function SessionActions({
 
       {open && (
         <div
-          className="absolute top-full right-0 mt-1 w-40 overflow-hidden rounded-md border border-[#2E3750] bg-[#1C222B] text-[11px] shadow-lg"
+          className="absolute top-full right-0 z-[50] mt-1 w-40 overflow-hidden rounded-md border border-[#2E3750] bg-[#1C222B] text-[11px] shadow-lg"
           onMouseLeave={() => setOpen(false)}
         >
           <MenuAction label={s.pinned ? "Unpin" : "Pin"} icon="📌" onClick={() => { onPin(); setOpen(false); }} />
