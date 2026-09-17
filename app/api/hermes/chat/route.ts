@@ -1,61 +1,44 @@
 import { NextResponse } from "next/server";
-import { execFile } from "child_process";
-import { promisify } from "util";
+import { readFileSync } from "fs";
+import path from "path";
 
-const execFileAsync = promisify(execFile);
+// Gateway LLM 127.0.0.1:20128 — model Smart-Dashboard
+// (pakai 127.0.0.1, BUKAN localhost: gateway cuma listen IPv4;
+//  fetch Node ke "localhost" coba IPv6 ::1 dulu → bisa hang/timeout)
+const GATEWAY_URL = "http://127.0.0.1:20128/v1/chat/completions";
+const MODEL = "Smart-Dashboard";
+const TIMEOUT_MS = 45_000;
+const MAX_RETRIES = 1;
 
-// Jalur Hermes Agent SmartDash (fresh install, 7 Agu 2026)
-const HERMES_EXE =
-  "D:\\SmartDash\\engine\\hermes\\hermes-agent\\venv\\Scripts\\hermes.exe";
-const HERMES_HOME = "D:\\SmartDash\\engine\\hermes";
-const CHAT_TIMEOUT_MS = 120_000; // Hermes Agent butuh waktu mikir + tool call
+// Key: prioritas process.env (dari .env.local), fallback baca engine/hermes/.env
+function resolveApiKey(): string {
+  if (process.env.HERMES_CUSTOM_LOCALHOST_20128_API_KEY) {
+    return process.env.HERMES_CUSTOM_LOCALHOST_20128_API_KEY;
+  }
+  try {
+    const envPath = path.join(
+      process.cwd(),
+      "engine",
+      "hermes",
+      ".env"
+    );
+    const content = readFileSync(envPath, "utf-8");
+    const match = content.match(
+      /^HERMES_CUSTOM_LOCALHOST_20128_API_KEY\s*=\s*(.+)$/m
+    );
+    if (match) return match[1].trim().replace(/^["']|["']$/g, "");
+  } catch {
+    // file tidak ada / tidak bisa dibaca → kosong, nanti 502 jelas
+  }
+  return "";
+}
+
+const API_KEY = resolveApiKey();
 
 type ChatBody = {
   messages?: Array<{ role?: string; content?: unknown }>;
   sessionId?: string | null;
 };
-
-// Bersihkan ANSI escape codes (warna/dim di terminal) sebelum parsing
-function stripAnsi(s: string): string {
-  return s.replace(/\x1b\[[0-9;]*m/g, "").replace(/\x1b\[[0-9;]*[A-Za-z]/g, "");
-}
-
-// Jawaban AI = baris-baris stdout SETELAH baris "session_id:" terakhir
-// (penanda konsisten di mode -Q --reasoning none). Fallback: ambil dari bawah,
-// skip noise reasoning (box-drawing, duplikat prompt, kalimat reasoning).
-function parseReply(stdout: string): string {
-  const clean = stripAnsi(stdout);
-  const lines = clean.split(/\r?\n/);
-
-  // Fase 1: cari baris "session_id:" TERAKHIR → jawaban ada setelahnya
-  let start = 0;
-  for (let i = 0; i < lines.length; i++) {
-    if (/^session_id:/.test(lines[i].trim())) start = i + 1;
-  }
-
-  // Fase 2: kumpulkan jawaban dari bawah ke atas, skip noise
-  const answer: string[] = [];
-  for (let i = lines.length - 1; i >= start; i--) {
-    const t = lines[i].trim();
-    if (answer.length > 0 || t.length > 0) {
-      if (/^session_id:/.test(t)) break; // penanda (di atas jawaban)
-      if (/^[┌─│╰└┬┴├┐┘]/.test(t)) break; // box-drawing reasoning
-      if (/^\.?\s*The user\b/i.test(t)) continue; // duplikat prompt
-      if (/Per my SOUL\.md|No tools needed|Simple (greeting|question)/i.test(t))
-        continue; // baris reasoning yang wrap
-      answer.unshift(lines[i]);
-    }
-  }
-  const reply = answer.join("\n").trim();
-  if (!reply) throw new Error("Hermes Agent tidak menghasilkan jawaban");
-  return reply;
-}
-
-// Session id dikirim Hermes ke stderr (bersih, tidak tercampur jawaban)
-function parseSessionId(stderr: string): string | null {
-  const m = stderr.match(/session_id:\s*(\S+)/);
-  return m ? m[1] : null;
-}
 
 export async function POST(req: Request) {
   try {
@@ -69,53 +52,102 @@ export async function POST(req: Request) {
       );
     }
 
-    // Ambil pesan user TERAKHIR sebagai prompt (Hermes Agent pegang riwayat
-    // lewat session resume — tidak perlu kirim seluruh history)
-    const lastUser = [...raw]
-      .reverse()
-      .find(
-        (m) =>
-          m?.role === "user" &&
-          typeof m?.content === "string" &&
-          m.content.trim().length > 0
-      );
-    if (!lastUser) {
+    // Kirim history penuh (bukan cuma pesan terakhir) biar konteks kebawa
+    // Map role "agent" → "assistant" (OpenAI API gak kenal "agent")
+    const ROLE_MAP: Record<string, string> = { agent: "assistant", error: "user" };
+    const validMsgs = raw
+      .filter((m) => m?.role && typeof m?.content === "string")
+      .map((m) => ({
+        role: ROLE_MAP[m.role!] ?? m.role!,
+        content: m.content as string,
+      }));
+
+    if (validMsgs.length === 0) {
       return NextResponse.json(
         { ok: false, error: "tidak ada pesan user valid" },
         { status: 400 }
       );
     }
-    const prompt = (lastUser.content as string).trim();
-    const sessionId =
-      typeof body.sessionId === "string" && body.sessionId.length > 0
-        ? body.sessionId
-        : null;
 
-    // -Q quiet, --reasoning none → output lebih bersih + penanda session_id
-    const args = ["chat", "-Q", "--reasoning", "none", "-q", prompt];
-    if (sessionId) args.push("--resume", sessionId);
+    // System prompt: identitas SmartDash agent
+    const systemPrompt =
+      "Kamu adalah SmartDash, asisten AI pribadi dashboard creator konten " +
+      "all-in-one (TikTok, YouTube, Instagram, WhatsApp). Tugasmu bantu user " +
+      "soal dashboard, analitik konten, automasi jadwal posting, revenue " +
+      "tracker, dan hal-hal teknis project SmartDash. Jawab dengan bahasa " +
+      "Indonesia yang santai dan to the point. Jangan pura-pura mengakses " +
+      "data yang tidak kamu punya.";
 
-    const { stdout, stderr } = await execFileAsync(HERMES_EXE, args, {
-      timeout: CHAT_TIMEOUT_MS,
-      env: {
-        ...process.env,
-        // Anti-hijack: PYTHONPATH global MASTER jangan sampai nyuntik kode Abbu
-        PYTHONPATH: "",
-        HERMES_HOME,
-        PYTHONIOENCODING: "utf-8",
-      },
-      windowsHide: true,
-      maxBuffer: 10 * 1024 * 1024,
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-    const reply = parseReply(stdout);
-    const nextSessionId = parseSessionId(stderr) ?? sessionId;
+    // Retry 1x kalau gateway lagi sibuk / tersendat (abort atau 5xx)
+    let lastErr: unknown = null;
+    let res: Response | null = null;
 
-    return NextResponse.json({ ok: true, reply, sessionId: nextSessionId });
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        res = await fetch(GATEWAY_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: MODEL,
+            messages: [{ role: "system", content: systemPrompt }, ...validMsgs],
+            max_tokens: 800,
+            stream: false,
+          }),
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        lastErr = null;
+        break; // sukses fetch — keluar dari loop retry
+      } catch (e) {
+        lastErr = e;
+        if (attempt < MAX_RETRIES) {
+          // sisakan jeda singkat biar gateway lepas dari antrean
+          await new Promise((r) => setTimeout(r, 800));
+        }
+      }
+    }
+
+    if (lastErr) {
+      const isAbort =
+        lastErr instanceof Error && /abort/i.test(lastErr.message);
+      return NextResponse.json(
+        {
+          ok: false,
+          error: isAbort
+            ? "Gateway lagi sibuk — coba lagi beberapa saat."
+            : "Gagal terhubung ke gateway LLM. Pastikan gateway SmartDash aktif.",
+        },
+        { status: 502 }
+      );
+    }
+
+    try {
+      if (!res!.ok) {
+        const errText = await res!.text().catch(() => "");
+        return NextResponse.json(
+          { ok: false, error: `Gateway error ${res!.status}: ${errText.slice(0, 200)}` },
+          { status: 502 }
+        );
+      }
+
+      const data = await res!.json();
+      const reply =
+        data?.choices?.[0]?.message?.content?.trim() ||
+        "⚠️ Kosong — coba lagi.";
+
+      return NextResponse.json({ ok: true, reply, sessionId: body.sessionId ?? null });
+    } finally {
+      clearTimeout(timer);
+    }
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Terjadi kesalahan tak dikenal";
-    // Hermes Agent mati / timeout / parsing gagal → balas error jelas
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

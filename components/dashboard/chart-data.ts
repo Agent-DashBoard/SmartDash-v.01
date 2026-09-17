@@ -1,9 +1,11 @@
-// chart-data.ts — helper data chart ASLI dari posts Zernio.
-// Fallback ke mock dilakukan di komponen masing-masing (kalau gak ada posts).
+// chart-data.ts — PURE HELPERS (SERVER-SAFE, TANPA React hooks).
+// Bisa diimpor dari Server Component (mis. halaman /platform).
+// Hook hasil data asli chart (yang pakai useState/useEffect) ada di chart-data-hooks.ts.
 
 import { LivePost } from "./live-data";
 
-// Map platform internal → label tampilan
+// ===== Helper legacy (dipakai content-performance & engagement-metrics) =====
+
 const PLATFORM_LABELS: Record<string, string> = {
   tiktok: "TikTok",
   youtube: "YouTube",
@@ -20,9 +22,11 @@ function shortDate(iso: string): string {
   return `${dd}/${mm}`;
 }
 
-// Bar Content Performance dari posts ASLI: 8 bucket waktu dalam RANGE DAYS terakhir
-// (bukan span min→max semua posts — itu bikin x-axis melebar setahun kalau ada
-// post lama + baru, lihat bug "bar YouTube gak muncul").
+export type ChartPoint = { label: string; value: number };
+
+// ===== Legacy helpers untuk halaman /platform (LivePost-based) =====
+
+// Bar Content Performance dari posts ASLI: 8 bucket waktu dalam RANGE DAYS terakhir.
 // Null kalau gak ada posts dalam range.
 export function weeklyPerformance(
   posts: LivePost[],
@@ -30,7 +34,6 @@ export function weeklyPerformance(
 ): Array<Record<string, number | string>> | null {
   if (!posts.length) return null;
 
-  // Filter posts dalam range (default: semua kalau rangeDays gak dikasih)
   let list = posts;
   if (rangeDays && rangeDays > 0) {
     const cutoff = Date.now() - rangeDays * 86_400_000;
@@ -47,7 +50,7 @@ export function weeklyPerformance(
   const min = new Date(sorted[0].createdTime).getTime();
   const max = new Date(sorted[sorted.length - 1].createdTime).getTime();
   const dayMs = 86_400_000;
-  const span = Math.max(max - min, dayMs); // minimal 1 hari biar bucket gak kelewat sempit
+  const span = Math.max(max - min, dayMs);
   const buckets: Array<Record<string, number | string>> = [];
   for (let i = 0; i < 8; i++) {
     const start = min + (span * i) / 8;
@@ -57,7 +60,6 @@ export function weeklyPerformance(
     };
     for (const p of sorted) {
       const t = new Date(p.createdTime).getTime();
-      // Bucket terakhir INCLUSIVE (<= end) biar post paling baru (tepat di max) tidak hilang.
       const inBucket =
         t >= start && (i === 7 ? t <= end : t < end);
       if (inBucket) {
@@ -71,7 +73,6 @@ export function weeklyPerformance(
 }
 
 // Aggregate semua kolom platform per bucket jadi 1 seri "total".
-// Dipakai untuk Content Performance mode "Semua Sosmed" (server + client).
 export function aggregateTotal(
   buckets: Array<Record<string, number | string>> | null
 ): Array<{ label: string; total: number }> | null {
@@ -85,14 +86,11 @@ export function aggregateTotal(
 }
 
 // Seri engagement per post (kronologis) — untuk Area chart.
-// Null kalau gak ada posts untuk platform tsb.
 export function engagementSeries(
   posts: LivePost[],
   platform?: string,
   rangeDays?: number
 ): Array<{ label: string; likes: number; comments: number }> | null {
-  // Filter posts dalam range days (30 hari terakhir dsb) — biar chart konsisten
-  // dengan filter "Last 7 days / Last 30 days" (bukan semua posts sejak dulu).
   let list = posts;
   if (rangeDays && rangeDays > 0) {
     const cutoff = Date.now() - rangeDays * 86_400_000;

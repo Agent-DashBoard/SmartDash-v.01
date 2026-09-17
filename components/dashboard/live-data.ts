@@ -126,7 +126,7 @@ function normalizePost(raw: RawPost, platform?: string): LivePost {
 // Semua posts digabung ke satu flat array — komponen lain yang filter per platform.
 // Ini perbaikan "arah langsung ke TikTok": dulu pakai akun pertama saja; sekarang
 // dashboard tampilkan data ASAL AKUN SAAT LOADING BERSEDIATU (bukan selepas).
-export function useLiveData(seed?: LiveData): LiveData {
+export function useLiveData(seed?: LiveData): LiveData & { reload: () => void } {
   const [state, setState] = useState<LiveData>(
     seed
       ? { ...seed, loading: false } // Seed dari server (SSR) → data sudah ada, tidak loading
@@ -138,6 +138,7 @@ export function useLiveData(seed?: LiveData): LiveData {
           updatedAt: null,
         }
   );
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -201,7 +202,12 @@ export function useLiveData(seed?: LiveData): LiveData {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [tick]);
 
-  return state;
+  // Refetch data — dipakai tombol Sync di halaman /social.
+  function reload() {
+    setTick((t) => t + 1);
+  }
+
+  return { ...state, reload };
 }

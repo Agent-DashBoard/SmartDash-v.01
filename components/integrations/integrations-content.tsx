@@ -70,25 +70,18 @@ const LS_KEY = "smartdash-integrations-pending";
 export function IntegrationsContent() {
   const live = useLiveData();
 
-  // Jam live (pola sama dengan dashboard: translate-y-[1.5px] + dot #00FF2F)
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    const first = setTimeout(() => setNow(new Date()), 0);
-    const id = setInterval(() => setNow(new Date()), 30_000);
-    return () => {
-      clearTimeout(first);
-      clearInterval(id);
-    };
-  }, []);
-  const time = now
-    ? now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
-    : "";
 
   // Modal + form (editKey != null = mode pengaturan, form terisi platform itu)
   const [showModal, setShowModal] = useState(false);
   const [editKey, setEditKey] = useState<string | null>(null);
   const [detailKey, setDetailKey] = useState<string | null>(null);
   const [form, setForm] = useState({ app: "", clientId: "", clientSecret: "", baseUri: "" });
+  // Toast feedback (gantikan alert() bawaan browser)
+  const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null);
+  function showToast(ok: boolean, text: string) {
+    setToast({ ok, text });
+    setTimeout(() => setToast(null), 3000);
+  }
 
   // Integrasi yang didaftarkan lewat popup (lokal, status "Menunggu")
   const [pending, setPending] = useState<PendingIntegration[]>([]);
@@ -155,7 +148,7 @@ export function IntegrationsContent() {
   const handleSubmit = () => {
     const p = PLATFORMS.find((x) => x.key === form.app);
     if (!p) {
-      alert("Pilih aplikasi dulu di kolom Select App 👆");
+      showToast(false, "Pilih aplikasi dulu di kolom Select App 👆");
       return;
     }
 
@@ -181,7 +174,7 @@ export function IntegrationsContent() {
 
     // Mode baru: cek duplikat dulu
     if (isRegistered(p.key)) {
-      alert(`${p.name} sudah terdaftar.`);
+      showToast(false, `${p.name} sudah terdaftar.`);
       setShowModal(false);
       setForm({ app: "", clientId: "", clientSecret: "", baseUri: "" });
       return;
@@ -219,28 +212,7 @@ export function IntegrationsContent() {
   const detailPending = detailKey ? pending.find((x) => x.key === detailKey) : undefined;
 
   return (
-    <div className="min-h-full bg-[#0E1116] px-3 py-2 [font-family:Inter,var(--font-geist-sans),system-ui,sans-serif]">
-      <div className="flex w-full flex-col gap-2">
-        {/* ===== Header: judul (kiri) · jam + dot (kanan) — TATA LETAK PERSIS Apps/dashboard ===== */}
-        <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.21] text-white">
-              Integrations
-            </h1>
-            <p className="text-[13px] text-[#94A3B8]">Dashboard • Integrations</p>
-          </div>
-          <div className="flex items-center gap-[10px]">
-            {/* Text jam — leading-none biar line-box = font-size (center akurat) */}
-            <span className="translate-y-[1.5px] text-[15px] font-bold leading-none tracking-[0.02em] text-white">
-              {time}
-            </span>
-            {/* Dot hijau status — berdenyut halus */}
-            <span className="relative flex h-[18px] w-[18px] shrink-0 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#FF6B00] opacity-20" />
-              <span className="relative inline-flex h-[18px] w-[18px] animate-pulse-dot rounded-full bg-[#00FF2F]" />
-            </span>
-          </div>
-        </header>
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
 
         {/* Baris aksi — tombol Add New Integration (kanan), pola filter bar dashboard */}
         <div className="flex flex-wrap items-center justify-end gap-3">
@@ -361,7 +333,6 @@ export function IntegrationsContent() {
             </div>
           )}
         </div>
-      </div>
 
       {/* ===== Popup New Integration (referensi gambar ke-2) ===== */}
       {showModal && (
@@ -595,6 +566,18 @@ export function IntegrationsContent() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TOAST — feedback pengganti alert() */}
+      {toast && (
+        <div style={{
+          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+          background: toast.ok ? "#10B981" : "#EF4444", color: "#fff",
+          padding: "10px 18px", borderRadius: 10, fontSize: 12, fontWeight: 600,
+          boxShadow: "0 6px 20px rgba(0,0,0,.4)", zIndex: 60,
+        }}>
+          {toast.text}
         </div>
       )}
     </div>

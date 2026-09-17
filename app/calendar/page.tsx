@@ -1,11 +1,7 @@
 "use client";
 
-// app/schedule/page.tsx — Halaman Schedule (jadwal posting terpusat).
-// Header konsisten dengan halaman lain.
-
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { ScheduleWorkspace } from "@/components/workspaces/ScheduleWorkspace";
+import { CalendarWorkspace } from "@/components/workspaces/CalendarWorkspace";
 
 function useClock() {
   const [now, setNow] = useState<Date | null>(null);
@@ -17,7 +13,7 @@ function useClock() {
   return now;
 }
 
-export default function SchedulePage() {
+export default function CalendarPage() {
   const now = useClock();
   const time = now
     ? now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
@@ -27,12 +23,8 @@ export default function SchedulePage() {
     <div className="flex h-full min-h-0 flex-col gap-2 overflow-hidden bg-[#0E1116] px-3 py-2 [font-family:Inter,var(--font-geist-sans),system-ui,sans-serif]">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.21] text-white">Schedule</h1>
-          <p className="text-[13px] text-[#94A3B8]">
-            <Link href="/" className="cursor-pointer transition-colors hover:text-white">Dashboard</Link>
-            <span className="mx-1 text-white/30">•</span>
-            <span className="text-white/60">Jadwal Posting Terpusat</span>
-          </p>
+          <h1 className="text-[clamp(24px,3vw,36px)] font-bold leading-[1.21] text-white">Calendar</h1>
+          <p className="text-[13px] text-[#94A3B8]">Dashboard • Calendar</p>
         </div>
         <div className="flex items-center gap-[10px]">
           <span className="translate-y-[1.5px] text-[15px] font-bold leading-none tracking-[0.02em] text-white">{time}</span>
@@ -44,7 +36,7 @@ export default function SchedulePage() {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col gap-2">
-        <ScheduleWorkspace />
+        <CalendarWorkspace />
       </div>
     </div>
   );
