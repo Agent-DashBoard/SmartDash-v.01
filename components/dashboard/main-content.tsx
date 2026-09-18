@@ -79,7 +79,7 @@ export default function MainContent() {
         {/* Greeting — greeting kiri, dropdown kanan (sesuai preview, tanpa span jam/dot) */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <div>
-            <h1 className="text-[30px] font-bold leading-[1.21] text-white">{greetingFor(hour)}, BangBay</h1>
+            <h1 className="text-[22px] sm:text-[30px] font-bold leading-[1.21] text-white">{greetingFor(hour)}, BangBay</h1>
             <p className="text-[12px] text-[#64748B] mt-[3px]">{time} — {dateLabel}</p>
           </div>
 
@@ -90,8 +90,8 @@ export default function MainContent() {
           />
         </div>
 
-        {/* 4 Cards — responsive full width, fixed height 125px */}
-        <div className="grid grid-cols-4 gap-2.5 w-full">
+        {/* 4 Cards — responsive full width: 2 kolom di mobile, 4 kolom dari breakpoint sm ke atas */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
 
           {/* Profile Card: data sesuai filter platform (fallback mock) */}
           <div

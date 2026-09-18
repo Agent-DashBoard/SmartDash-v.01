@@ -146,89 +146,156 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+// Daftar nav dipakai bareng oleh versi desktop (collapsible) & mobile (drawer)
+function NavLinks({
+  collapsed,
+  pathname,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  return (
+    <nav className="flex-1 space-y-1 overflow-y-auto py-4">
+      {NAV_ITEMS.map((item) => {
+        const active =
+          item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            title={item.label}
+            onClick={onNavigate}
+            className={`flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+              collapsed ? "justify-center px-2" : "gap-3"
+            } ${
+              active
+                ? "bg-primary/15 text-primary"
+                : "text-muted hover:bg-surface-raised hover:text-foreground"
+            }`}
+          >
+            {collapsed ? (item.iconCollapsed ?? item.icon) : item.icon}
+            {!collapsed && item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export default function Sidebar({
   open = true,
   onToggle,
+  mobileOpen = false,
+  onMobileClose,
 }: {
   open: boolean;
   onToggle: () => void;
+  /** Drawer mobile terbuka/tertutup (di bawah breakpoint md) */
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }) {
   const pathname = usePathname();
 
   return (
-    <aside
-      className={`flex h-full shrink-0 flex-col border-r border-border-subtle bg-surface transition-[width] duration-300 ${
-        open ? "w-50" : "w-16"
-      }`}
-    >
-      {/* Brand — kotak logo; tombol toggle di pojok kanan DALAM kotak ini */}
-      <div className="relative flex h-24 shrink-0 items-center justify-center border-b border-border-subtle px-5">
-        {open && (
+    <>
+      {/* ===== Sidebar DESKTOP — persistent & collapsible, disembunyikan di mobile ===== */}
+      <aside
+        className={`hidden h-full shrink-0 flex-col border-r border-border-subtle bg-surface transition-[width] duration-300 md:flex ${
+          open ? "w-50" : "w-16"
+        }`}
+      >
+        {/* Brand — kotak logo; tombol toggle di pojok kanan DALAM kotak ini */}
+        <div className="relative flex h-24 shrink-0 items-center justify-center border-b border-border-subtle px-5">
+          {open && (
+            <Image
+              src="/images/logo.png"
+              alt="SmartDash"
+              width={178}
+              height={49}
+              className="h-10 w-auto"
+              priority
+            />
+          )}
+          {/* Tombol tutup/buka sidebar — pojok kanan atas di dalam kotak logo */}
+          <button
+            type="button"
+            onClick={onToggle}
+            title={open ? "Tutup sidebar" : "Buka sidebar"}
+            aria-label={open ? "Tutup sidebar" : "Buka sidebar"}
+            className="absolute right-2 top-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-raised hover:text-foreground"
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M12 4v16" />
+            </svg>
+          </button>
+        </div>
+
+        <NavLinks collapsed={!open} pathname={pathname} />
+
+        {/* Footer */}
+        <div className={`border-t border-border-subtle ${open ? "px-5 py-4" : "py-4"}`}>
+          {open && <p className="text-xs text-muted">SmartDash v0.1</p>}
+        </div>
+      </aside>
+
+      {/* ===== Sidebar MOBILE — overlay drawer, slide dari kiri, cuma di bawah breakpoint md ===== */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col border-r border-border-subtle bg-surface transition-transform duration-300 md:hidden ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+        aria-hidden={!mobileOpen}
+      >
+        <div className="relative flex h-16 shrink-0 items-center justify-between border-b border-border-subtle px-4">
           <Image
             src="/images/logo.png"
             alt="SmartDash"
-            width={178}
-            height={49}
-            className="h-10 w-auto"
+            width={148}
+            height={41}
+            className="h-8 w-auto"
             priority
           />
-        )}
-        {/* Tombol tutup/buka sidebar — pojok kanan atas di dalam kotak logo */}
-        <button
-          type="button"
-          onClick={onToggle}
-          title={open ? "Tutup sidebar" : "Buka sidebar"}
-          aria-label={open ? "Tutup sidebar" : "Buka sidebar"}
-          className="absolute right-2 top-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-raised hover:text-foreground"
-        >
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
+          <button
+            type="button"
+            onClick={onMobileClose}
+            title="Tutup menu"
+            aria-label="Tutup menu"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface-raised hover:text-foreground"
           >
-            <rect x="3" y="4" width="18" height="16" rx="2" />
-            <path d="M12 4v16" />
-          </svg>
-        </button>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 space-y-1 overflow-y-auto py-4">
-        {NAV_ITEMS.map((item) => {
-          const active =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={item.label}
-              className={`flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                open ? "gap-3" : "justify-center px-2"
-              } ${
-                active
-                  ? "bg-primary/15 text-primary"
-                  : "text-muted hover:bg-surface-raised hover:text-foreground"
-              }`}
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
             >
-              {open ? item.icon : (item.iconCollapsed ?? item.icon)}
-              {open && item.label}
-            </Link>
-          );
-        })}
-      </nav>
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
 
-      {/* Footer */}
-      <div className={`border-t border-border-subtle ${open ? "px-5 py-4" : "py-4"}`}>
-        {open && <p className="text-xs text-muted">SmartDash v0.1</p>}
-      </div>
-    </aside>
+        <NavLinks collapsed={false} pathname={pathname} onNavigate={onMobileClose} />
+
+        <div className="border-t border-border-subtle px-5 py-4">
+          <p className="text-xs text-muted">SmartDash v0.1</p>
+        </div>
+      </aside>
+    </>
   );
 }
