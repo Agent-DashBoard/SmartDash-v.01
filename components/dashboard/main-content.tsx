@@ -93,9 +93,10 @@ export default function MainContent() {
         {/* 4 Cards — responsive full width: 2 kolom di mobile, 4 kolom dari breakpoint sm ke atas */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 w-full">
 
-          {/* Profile Card: data sesuai filter platform (fallback mock) */}
+          {/* Profile Card: data sesuai filter platform (fallback mock). Full-width di mobile
+              (col-span-2) biar avatar+teks gak kepepet, balik jadi 1 kolom biasa di layar besar */}
           <div
-  className="flex items-stretch gap-4 px-4 py-3 bg-[#1C222B] rounded-[5px]"
+  className="col-span-2 flex items-stretch gap-4 px-4 py-3 bg-[#1C222B] rounded-[5px] sm:col-span-1"
   style={{ height: 125, width: "100%", maxWidth: 447 }}
 >
   <img

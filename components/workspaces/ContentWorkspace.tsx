@@ -240,7 +240,7 @@ export function ContentWorkspace() {
           {STATUS_KEYS.map((s) => {
             const colItems = filtered.filter((i) => i.status === s);
             return (
-              <div key={s} className="flex min-h-0 min-w-[200px] flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B]">
+              <div key={s} className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[10px] border border-[#2E3750] bg-[#1C222B]">
                 <div className="flex shrink-0 items-center justify-between border-b border-[#2E3750] px-3 py-2">
                   <div className="flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-full" style={{ background: STATUS_META[s].color }} />

@@ -317,9 +317,10 @@ export default function ChartSection() {
 
       {/* Single unified card: header + chart together */}
       <div className="bg-[#1C222B] rounded-[12px] overflow-hidden pt-4 pb-4 pl-4">
-        {/* Header row: tabs left, view mode toggle right */}
-        <div className="flex items-center justify-between mb-4 pr-4">
-          <div className="flex items-center gap-5">
+        {/* Header row: tabs left, view mode toggle right — wrap ke baris baru di layar sempit
+            biar gak nabrak (dulu: "TrafficDay" nempel karena dipaksa 1 baris) */}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 mb-4 pr-4">
+          <div className="flex items-center gap-3 sm:gap-5">
             {TABS.map((t) => (
               <button
                 key={t.key}
@@ -332,7 +333,7 @@ export default function ChartSection() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3 sm:gap-5">
             {VIEW_MODES.map((m) => (
               <button
                 key={m.key}
